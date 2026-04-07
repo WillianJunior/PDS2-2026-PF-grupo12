@@ -1,1 +1,17 @@
+# Compilação
 build/
+*.o
+*.exe
+*.out
+
+# Arquivos de Sistema/Linux
+.cache/
+.bash*
+.profile
+.gitconfig
+.motd_shown
+.sudo_as_admin_successful
+
+# Pastas que não pertencem ao projeto final
+exercises/
+
