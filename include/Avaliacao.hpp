@@ -3,6 +3,8 @@
 
 #include <string>
 
+
+class Usuario;
 /**
  * @class Avaliacao
  * @brief Representa o feedback do usuário sobre uma receita.
@@ -11,13 +13,14 @@ class Avaliacao{
 private:
     std::string _comentario;
     int _nota;
-    std::string _autor;
+    Usuario* _autor;
 
 public:
-    Avaliacao(std::string autor, int nota, std::string comentario);
+    Avaliacao(Usuario* autor, int nota, std::string comentario);
     int getNota();
     std::string getComentario();
-    std::string getAutor();
+    Usuario* getAutor();
+
 };
 
 #endif
