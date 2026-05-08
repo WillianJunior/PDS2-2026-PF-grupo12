@@ -5,8 +5,8 @@
 #include "Receita.hpp"
 
 /**
- * @class Ingrediente
- * @brief Representa um ingrediente com nome, quantidade, unidade e tipo.
+ * @class Template Receita
+ * @brief Representa templates de receita, com nome, descrição e lista de ingredientes necessários.
  */
 
 class TemplateReceita //essa classe, seguindo o cartão, pede por uma maneira de fazer listas de ingredientes (ja tem em receita)
