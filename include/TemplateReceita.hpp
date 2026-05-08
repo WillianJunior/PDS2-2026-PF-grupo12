@@ -1,5 +1,5 @@
-#ifndef TEMPLATERECEITA_H
-#define TEMPLATERECEITA_H
+#ifndef TEMPLATERECEITA_HPP
+#define TEMPLATERECEITA_HPP
 #include <string>
 #include "Ingrediente.hpp"
 #include "Receita.hpp"
