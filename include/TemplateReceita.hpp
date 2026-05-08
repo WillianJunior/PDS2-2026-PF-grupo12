@@ -4,6 +4,11 @@
 #include "Ingrediente.hpp"
 #include "Receita.hpp"
 
+/**
+ * @class Ingrediente
+ * @brief Representa um ingrediente com nome, quantidade, unidade e tipo.
+ */
+
 class TemplateReceita //essa classe, seguindo o cartão, pede por uma maneira de fazer listas de ingredientes (ja tem em receita)
                       //e pede por um método que inicializa uma nova receita a partir de template. Creio que fazer herança com receita ia facilitar tudo isso.
 {

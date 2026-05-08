@@ -1,7 +1,12 @@
-#ifndef INGREDIENTES_H
-#define INGREDIENTES_H
+#ifndef INGREDIENTE_HPP
+#define INGREDIENTE_HPP
 #include <string>
 
+
+/**
+ * @class Ingrediente
+ * @brief Representa um ingrediente com nome, quantidade, unidade e tipo.
+ */
 class Ingrediente
 {
 private:
