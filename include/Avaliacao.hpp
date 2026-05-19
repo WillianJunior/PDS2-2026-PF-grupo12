@@ -3,8 +3,6 @@
 
 #include <string>
 
-
-class Usuario;
 /**
  * @class Avaliacao
  * @brief Representa o feedback do usuário sobre uma receita.

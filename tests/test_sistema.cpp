@@ -1,3 +1,7 @@
+#include "doctest.h"
+#include "../include/Sistema.hpp"
+//faltava os headers para fazer esse codigo funcionar. Inclui eles.
+
 TEST_CASE("Cadastrar usuario") {
 
     Sistema s;
