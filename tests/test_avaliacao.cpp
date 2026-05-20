@@ -1,7 +1,6 @@
 #include "doctest.h"
 
 #include "../include/Avaliacao.hpp"
-#include "../include/Usuario.hpp"
 
 TEST_CASE("Criacao de avaliacao") {
 

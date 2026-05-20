@@ -17,7 +17,7 @@ private:
     std::string _nomeT; //nome do template
     std::string _Desc; //descrição do template
     int _totalIngredientes; // variável para contar quantos ingredientes existem na lista de ingredientes.
-    Ingrediente lista_ingredientes [100];
+    Ingrediente* lista_ingredientes [100];
 
 public:
 

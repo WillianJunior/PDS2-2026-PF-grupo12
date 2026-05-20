@@ -1,6 +1,6 @@
 #ifndef AVALIACAO_HPP
 #define AVALIACAO_HPP
-
+#include "Usuario.hpp"
 #include <string>
 
 /**
