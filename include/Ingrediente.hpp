@@ -20,7 +20,7 @@ public:
     Ingrediente(std::string nome, int quant, std::string unidade, std::string tipo); //construtor para ser usado em funções do tipo "adicionar ingrediente".
 
     bool verificar_unidades(int quant, std::string unidade); //verifica se o item está disponivel na quantidade/unidade informada (compara com os valores locais).
-    bool validar_ingrediente(){}; //verifica se o ingrediente 
+    bool validar_ingrediente(); //verifica se o ingrediente é valido
 
     //getters
     std::string _getnomeI();
