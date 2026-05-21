@@ -8,7 +8,7 @@ TEST_CASE("Criar template") {
         "Template para bolos"
     );
 
-    CHECK(true);
+    CHECK(t.getIngredientesT().size() == 0);
 }
 
 TEST_CASE("Adicionar ingrediente") {
@@ -27,5 +27,5 @@ TEST_CASE("Adicionar ingrediente") {
 
     t.adicionarIngrediente(i);
 
-    CHECK(true);
+    CHECK(t.getIngredientesT().size() == 1);
 }

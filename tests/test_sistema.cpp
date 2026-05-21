@@ -68,11 +68,7 @@ TEST_CASE("Logout") {
 
     s.logout();
 
-    CHECK(
-        s.getUsuarioAtivo()
-        ==
-        nullptr
-    );
+    CHECK(s.getUsuarioAtivo() == nullptr);
 }
 
 TEST_CASE("Cadastrar receita") {
@@ -81,21 +77,13 @@ TEST_CASE("Cadastrar receita") {
 
     std::string titulo = "Bolo de ninho com nutella";
 
-    Receita* r =
-        s.cadastrarReceita(
-            titulo,
-            60,
-            Dificuldade::Facil,
-            Categoria::Doce
-        );
+    Receita* r = s.cadastrarReceita(titulo, 60, Dificuldade::Facil, Categoria::Doce);
 
     CHECK(r != nullptr);
 
-    CHECK(
-        s.getReceitas().size()
-        ==
-        1
-    );
+    CHECK(s.getReceitas().size() == 1);
+
+     CHECK(&s.getReceitas()[0] == r);
 }
 
 TEST_CASE("Buscar receita") {
@@ -104,23 +92,11 @@ TEST_CASE("Buscar receita") {
 
     std::string titulo = "Pizza";
 
-    s.cadastrarReceita(
-        titulo,
-        30,
-        Dificuldade::Medio,
-        Categoria::Salgado
-    );
+    s.cadastrarReceita(titulo, 30, Dificuldade::Medio, Categoria::Salgado);
 
-    auto resultado =
-        s.buscarPorTitulo(
-            titulo
-        );
+    auto resultado = s.buscarPorTitulo(titulo);
 
-    CHECK(
-        resultado.size()
-        ==
-        1
-    );
+    CHECK(resultado.size() == 1); 
 }
 
 TEST_CASE("Filtrar dificuldade") {
@@ -130,28 +106,11 @@ TEST_CASE("Filtrar dificuldade") {
     std::string r1 = "Bolo";
     std::string r2 = "Lasanha";
 
-    s.cadastrarReceita(
-        r1,
-        20,
-        Dificuldade::Facil,
-        Categoria::Doce
-    );
+    s.cadastrarReceita(r1, 20, Dificuldade::Facil, Categoria::Doce);
 
-    s.cadastrarReceita(
-        r2,
-        90,
-        Dificuldade::Dificil,
-        Categoria::Salgado
-    );
+    s.cadastrarReceita(r2, 90, Dificuldade::Dificil, Categoria::Salgado);
 
-    auto lista =
-        s.filtrarPorDificuldade(
-            Dificuldade::Facil
-        );
+    auto lista = s.filtrarPorDificuldade(Dificuldade::Facil);
 
-    CHECK(
-        lista.size()
-        ==
-        1
-    );
+    CHECK(lista.size() == 1);
 }

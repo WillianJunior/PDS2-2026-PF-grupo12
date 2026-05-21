@@ -26,6 +26,8 @@ public:
     bool verificarReceita(Receita receita); //verifica se receita segue os mesmos parâmetros de templateReceita.
     void gerarReceita(); //gera uma nova receita usando parametros do template.
 
+    std::vector<Ingrediente> getIngredientesT();
+
     ~TemplateReceita();
 };
 

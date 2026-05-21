@@ -35,7 +35,7 @@ TEST_CASE("Adicionar ingrediente") {
 
     r.adicionarIngrediente(i);
 
-    CHECK(true);
+    CHECK(r.getIngredientes().size() == 1);
 }
 
 TEST_CASE("Definir instrucoes") {
@@ -51,7 +51,7 @@ TEST_CASE("Definir instrucoes") {
         "Misture tudo"
     );
 
-    CHECK(true);
+    CHECK(r.getInstrucoes() == "Misture tudo");
 }   
 
 TEST_CASE("Media de notas") {

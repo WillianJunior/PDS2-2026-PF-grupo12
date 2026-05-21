@@ -35,7 +35,9 @@ public:
 
     std::string& getTitulo();
     Dificuldade getDificuldade();
-    double calcularMediaNotas();
+    Categoria getCategoria();
+    std::string  getInstrucoes();
+    std::vector<Ingrediente> getIngredientes(); //  talvez precise criar um operator de saida para ingrediente
 
 };
 

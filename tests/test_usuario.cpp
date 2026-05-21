@@ -15,17 +15,9 @@ TEST_CASE("Criar usuario") {
         senha
     );
 
-    CHECK(
-        u.getNome()
-        ==
-        "djavan"
-    );
+    CHECK(u.getNome() == "djavan");
 
-    CHECK(
-        u.getEmail()
-        ==
-        "djavan@gmail.com"
-    );
+    CHECK(u.getEmail() == "djavan@gmail.com");
 }
 
 TEST_CASE("Autenticacao") {
@@ -40,17 +32,9 @@ TEST_CASE("Autenticacao") {
         senha
     );
 
-    CHECK(
-        u.autenticar(
-            "abc"
-        )
-    );
+    CHECK(u.autenticar("abc"));
 
-    CHECK_FALSE(
-        u.autenticar(
-            "errada"
-        )
-    );
+    CHECK_FALSE(u.autenticar("errada"));
 }
 
 TEST_CASE("Receitas proprias") {
@@ -72,16 +56,9 @@ TEST_CASE("Receitas proprias") {
         Categoria::Doce
     );
 
-    u.adicionarReceitaPropria(
-        &r
-    );
+    u.adicionarReceitaPropria(&r);
 
-    CHECK(
-        u.getReceitasProprias()
-        .size()
-        ==
-        1
-    );
+    CHECK(u.getReceitasProprias().size() == 1);
 }
 
 TEST_CASE("Favoritas") {
@@ -103,13 +80,7 @@ TEST_CASE("Favoritas") {
         Categoria::Salgado
     );
 
-    u.adicionarFavorita(
-        &r
-    );
+    u.adicionarFavorita(&r);
 
-    CHECK(
-        u.ehFavorita(
-            &r
-        )
-    );
+    CHECK(u.ehFavorita(&r));
 }
