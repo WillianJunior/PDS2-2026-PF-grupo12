@@ -37,9 +37,9 @@ test: $(BUILD_DIR) $(COV_DIR)
 	$(CXX) $(CXXFLAGS) $(COVFLAGS) $(TEST_SRCS) $(APP_SRCS) -o $(TEST_BIN)
 	./$(TEST_BIN)
 	@echo "=================== COBERTURA ==================="
-	gcovr -r . --filter src/ --filter include/ \
-	      --html --html-details -o $(COV_DIR)/coverage.html
-	gcovr -r . --filter src/ --filter include/
+	gcovr -r . --filter src/ --filter include/ --exclude '.*doctest\.h' --html --html-details -o $(COV_DIR)/coverage.html ; \
+	gcovr -r . --filter src/ --filter include/ --exclude '.*doctest\.h' ; \
+	
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
