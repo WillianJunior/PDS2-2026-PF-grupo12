@@ -1,0 +1,3 @@
+ - raiz do projeto limpa, com todos arquivos gerados dentro do build (boa)
+ - .gitignore bem feito, deixando o projeto bem organizado. um detalhe pequeno: o encoding está inconsistênte. no .gitignore tem o caractere ^M (carriage return, ou \r). isso normalmente aparece em editores de texto para windows. isso não causa nenhum erro, mas se possível, remover :)
+ - sobre a quantidade de arquivos source (.cpp) ainda estou preocupado. da forma que está, parece que o sistema vai ficar muito trivial. se quiserem, venham coversar comigo em aula para tentarmos alinhar melhor o projeto com o esperado para a entrega final.
