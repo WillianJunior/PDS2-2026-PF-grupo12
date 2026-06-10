@@ -19,9 +19,9 @@ private:
     std::vector<Receita*> favoritas;
 
 public:
-    Usuario( std::string& nome,
-             std::string& email,
-             std::string& senha);
+    Usuario(const std::string& _nome,
+        const std::string& _email,
+        const std::string& _senha);
 
     std::string getNome();
     std::string getEmail();

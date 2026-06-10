@@ -1,8 +1,8 @@
 #include "../include/Usuario.hpp"
 #include <algorithm>
 
-Usuario::Usuario(std::string& nome, std::string& email, std::string& senha)
-    : nome(nome), email(email), senha(senha) {}
+Usuario::Usuario(const std::string& _nome, const std::string& _email, const std::string& _senha)
+    : nome(_nome), email(_email), senha(_senha) {}
 
 std::string Usuario::getNome() { return nome; }
 

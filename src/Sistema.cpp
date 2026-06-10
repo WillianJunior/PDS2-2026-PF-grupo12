@@ -127,29 +127,48 @@ void Sistema::salvar() {
                   + i._getTipoI();
         }
 
-        fr << r.getTitulo()                          << ","
-           << dificuldadeParaStr(r.getDificuldade()) << ","
-           << categoriaParaStr(r.getCategoria())     << ","
-           << r.getInstrucoes()                      << ","
-           << ings                                   << "\n";
+        fr  << r.getTitulo()                          << ","
+            << r.getTempoPreparo()                    << ","
+            << dificuldadeParaStr(r.getDificuldade()) << ","
+            << categoriaParaStr(r.getCategoria())     << ","
+            << r.getInstrucoes()                      << ","
+            << ings                                   << "\n";
     }
     
 }
 
 void Sistema::carregar() {
+    _usuarios.clear();
+    _receitas.clear();
+    _usuarioAtivo = nullptr;
+
+    // --- usuarios ---
     std::ifstream fu("data/usuarios.csv");
     std::string linha;
-
-    while(std::getline(fu, linha)) {
+    while (std::getline(fu, linha)) {
         std::stringstream ss(linha);
-        std::string titulo, sdif, scat, instrucoes, ings;
-        std::getline(ss, titulo, ',');
-        std::getline(ss, sdif, ',');
-        std::getline(ss, scat, ',');
-        std::getline(ss, instrucoes, ',');
-        std::getline(ss, ings, ',');
+        std::string nome, email;
+        std::getline(ss, nome,  ',');
+        std::getline(ss, email, ',');
+        if (!nome.empty())
+            _usuarios.emplace_back(nome, email, "");
+    }
 
-        _receitas.emplace_back(titulo, 0, strParaDificuldade(sdif), strParaCategoria(scat));
+    // --- receitas ---
+    std::ifstream fr("data/receitas.csv");
+    while (std::getline(fr, linha)) {
+        std::stringstream ss(linha);
+        std::string titulo, stempo, sdif, scat, instrucoes, ings;
+        std::getline(ss, titulo,     ',');
+        std::getline(ss, stempo,     ',');
+        std::getline(ss, sdif,       ',');
+        std::getline(ss, scat,       ',');
+        std::getline(ss, instrucoes, ',');
+        std::getline(ss, ings,       ',');
+
+        if (titulo.empty()) continue;
+
+       _receitas.emplace_back(titulo, std::stoi(stempo), strParaDificuldade(sdif), strParaCategoria(scat));
         Receita& r = _receitas.back();
         r.definirInstrucoes(instrucoes);
 
@@ -158,10 +177,10 @@ void Sistema::carregar() {
         while (std::getline(si, bloco, ';')) {
             std::stringstream sb(bloco);
             std::string nome, squant, unidade, tipo;
-            std::getline(sb, nome, '|');
-            std::getline(sb, squant, '|');
+            std::getline(sb, nome,    '|');
+            std::getline(sb, squant,  '|');
             std::getline(sb, unidade, '|');
-            std::getline(sb, tipo, '|');
+            std::getline(sb, tipo,    '|');
             if (!nome.empty())
                 r.adicionarIngrediente(Ingrediente(nome, std::stoi(squant), unidade, tipo));
         }
