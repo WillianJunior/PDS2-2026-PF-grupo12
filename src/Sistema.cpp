@@ -2,6 +2,40 @@
 
 Sistema::Sistema() {}
 
+std::string Sistema::dificuldadeParaStr(Dificuldade d) {
+    switch (d) {
+        case Dificuldade::Facil:   return "Facil";
+        case Dificuldade::Medio:   return "Medio";
+        case Dificuldade::Dificil: return "Dificil";
+    }
+    return "Facil";
+}
+
+std::string Sistema::categoriaParaStr(Categoria c) {
+    switch (c) {
+        case Categoria::Doce:        return "Doce";
+        case Categoria::Salgado:     return "Salgado";
+        case Categoria::Vegano:      return "Vegano";
+        case Categoria::Vegetariano: return "Vegetariano";
+        case Categoria::Outro:       return "Outro";
+    }
+    return "Outro";
+}
+
+Dificuldade Sistema::strParaDificuldade(const std::string& s) {
+    if (s == "Medio")   return Dificuldade::Medio;
+    if (s == "Dificil") return Dificuldade::Dificil;
+    return Dificuldade::Facil;
+}
+
+Categoria Sistema::strParaCategoria(const std::string& s) {
+    if (s == "Salgado")     return Categoria::Salgado;
+    if (s == "Vegano")      return Categoria::Vegano;
+    if (s == "Vegetariano") return Categoria::Vegetariano;
+    if (s == "Doce")       return Categoria::Doce;
+    return Categoria::Outro;
+}
+
 bool Sistema::cadastrarUsuario(std::string& nome, std::string& email, std::string& senha) {
     // nao permite emails duplicados
     for (auto& u : _usuarios) {
@@ -74,3 +108,62 @@ void Sistema::avaliar(std::string& tituloReceita, int nota, std::string& comenta
 }
 
 std::vector<Receita>& Sistema::getReceitas() { return _receitas; }
+
+void Sistema::salvar() {
+    //usuarios
+    std::ofstream fu("data/usuarios.csv");
+    for(auto& u : _usuarios)
+        fu << u.getNome() << "," << u.getEmail() << "\n";
+
+    //receitas
+    std::ofstream fr("data/receitas.csv");
+    for(auto& r : _receitas) {
+        std::string ings = "";
+        for (auto& i : r.getIngredientes()) {
+            if(!ings.empty()) ings += ";";
+            ings += i._getNome() + "|"
+                  + std::to_string(i.getquantI()) + "|"
+                  + i.getUnidadeI() + "|"
+                  + i._getTipoI();
+        }
+
+        fr << r.getTitulo()                          << ","
+           << dificuldadeParaStr(r.getDificuldade()) << ","
+           << categoriaParaStr(r.getCategoria())     << ","
+           << r.getInstrucoes()                      << ","
+           << ings                                   << "\n"
+    }
+    
+}
+
+void Sistema::carregar() {
+    std::ifstream fu("data/usuarios.csv");
+    std::string linha;
+
+    while(std::getline(fu, linha)) {
+        std::stringstream ss(linha);
+        std::string titulo, sdif, scat, instrucoes, ings;
+        std::getline(ss, titulo, ',');
+        std::getline(ss, sdif, ',');
+        std::getline(ss, scat, ',');
+        std::getline(ss, instrucoes, ',');
+        std::getline(ss, ings, ',');
+
+        _receitas.emplace_back(titulo, 0, strParaDificuldade(sdif), strParaCategoria(scat));
+        Receita& r = _receitas.back();
+        r.definirInstrucoes(instrucoes);
+
+        std::stringstream si(ings);
+        std::string bloco;
+        while (std::getline(si, bloco, ';')) {
+            std::stringstream sb(bloco);
+            std::string nome, squant, unidade, tipo;
+            std::getline(sb, nome, "|");
+            std::getline(sb, squant, '|');
+            std::getline(sb, unidade, '|');
+            std::getline(sb, tipo, '|');
+            if (!nome.empty())
+                r.adicionarIngrediente(Ingrediente(nome, std::stoi(squant), unidade, tipo));
+        }
+    }
+}

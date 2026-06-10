@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 #include "Receita.hpp"   
 #include "Usuario.hpp"
 /**
@@ -13,7 +15,12 @@ class Sistema {
 private:
     std::vector<Usuario> _usuarios;
     std::vector<Receita> _receitas;
-    Usuario* _usuarioAtivo = nullptr;   
+    Usuario* _usuarioAtivo = nullptr;  
+    
+    static std::string dificuldadeParaStr(Dificuldade d);
+    static std::string categoriaParaStr(Categoria c);
+    static Dificuldade strParaDificuldade(const std::string& s);
+    static Categoria   strParaCategoria(const std::string& s);
 
 public:
     Sistema();
@@ -22,6 +29,9 @@ public:
 
     bool login( std::string& email,  std::string& senha);
     void logout();
+
+    void salvar();
+    void carregar();
 
     Usuario* getUsuarioAtivo() ;
 
