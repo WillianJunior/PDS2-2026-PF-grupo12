@@ -14,10 +14,10 @@ private:
     Usuario* _autor;
 
 public:
-    Avaliacao(Usuario* autor, int nota, std::string comentario);
-    int getNota();
-    std::string getComentario();
-    Usuario* getAutor();
+    Avaliacao(Usuario* autor, int nota, const std::string& comentario);
+    int getNota() const;
+    const std::string& getComentario() const;
+    Usuario* getAutor() const;
 
 };
 

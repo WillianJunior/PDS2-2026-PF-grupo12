@@ -1,35 +1,36 @@
+
 #ifndef TEMPLATERECEITA_HPP
 #define TEMPLATERECEITA_HPP
 #include <string>
+#include <vector>
 #include "Ingrediente.hpp"
 #include "Receita.hpp"
 
 /**
- * @class Template Receita
- * @brief Representa templates de receita, com nome, descrição e lista de ingredientes necessários.
+ * @class TemplateReceita
+ * @brief Template para validar e gerar receitas com ingredientes obrigatórios.
  */
-
-class TemplateReceita //essa classe, seguindo o cartão, pede por uma maneira de fazer listas de ingredientes (ja tem em receita)
-                      //e pede por um método que inicializa uma nova receita a partir de template. Creio que fazer herança com receita ia facilitar tudo isso.
-{
+class TemplateReceita {
 private:
-
-    std::string _nomeT; //nome do template
-    std::string _Desc; //descrição do template
-    int _totalIngredientes; // variável para contar quantos ingredientes existem na lista de ingredientes.
-    Ingrediente* lista_ingredientes [100];
+    std::string _nome;
+    std::string _descricao;
+    std::vector<Ingrediente> _ingredientes;
 
 public:
+    TemplateReceita(const std::string& nome, const std::string& descricao);
 
-    TemplateReceita(std::string nome, std::string Descricao); //construtor, insere apenas nome e descrição.
-    void adicionarIngrediente(Ingrediente ingrediente); //adiciona ingrediente à lista do template.
-    bool verificarReceita(Receita receita); //verifica se receita segue os mesmos parâmetros de templateReceita.
-    void gerarReceita(); //gera uma nova receita usando parametros do template.
+    void adicionarIngrediente(const Ingrediente& ingrediente);
 
-    std::vector<Ingrediente> getIngredientesT();
+    /** Retorna true se a receita contém TODOS os ingredientes do template (por nome). */
+    bool verificarReceita(const Receita& receita) const;
 
-    ~TemplateReceita();
+    /** Gera uma nova Receita pré-preenchida com os ingredientes deste template. */
+    Receita gerarReceita(const std::string& titulo, int tempo,
+                         Dificuldade dificuldade, Categoria categoria) const;
+
+    const std::string& getNome() const;
+    const std::string& getDescricao() const;
+    const std::vector<Ingrediente>& getIngredientesT() const;
 };
-
 
 #endif

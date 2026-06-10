@@ -1,6 +1,6 @@
+
 #ifndef USUARIO_HPP
 #define USUARIO_HPP
-
 #include <vector>
 #include <string>
 
@@ -8,35 +8,41 @@ class Receita;
 
 /**
  * @class Usuario
- * @brief Representa um usuário cadastrado, com suas receitas próprias e favoritas.
+ * @brief Representa um usuário cadastrado, com receitas próprias e favoritas.
  */
 class Usuario {
 private:
-    std::string nome;
-    std::string email;
-    std::string senha;
-    std::vector<Receita*> receitasProprias;
-    std::vector<Receita*> favoritas;
+    std::string _nome;
+    std::string _email;
+    std::string _senha;
+    std::vector<Receita*> _receitasProprias;
+    std::vector<Receita*> _favoritas;
 
 public:
-    Usuario( std::string& nome,
-             std::string& email,
-             std::string& senha);
+    Usuario(const std::string& nome,
+            const std::string& email,
+            const std::string& senha);
 
-    std::string getNome();
-    std::string getEmail();
+    const std::string& getNome() const;
+    const std::string& getEmail() const;
 
-    bool autenticar(const std::string& senha);
-    void alterarSenha(const std::string& senhaAtual);
+    bool autenticar(const std::string& senha) const;
+    bool alterarSenha(const std::string& senhaAtual,
+                      const std::string& novaSenha);
 
     void adicionarReceitaPropria(Receita* r);
+
     void removerReceitaPropria(Receita* r);
-    std::vector<Receita*>& getReceitasProprias();
+
+    const std::vector<Receita*>& getReceitasProprias() const;
 
     void adicionarFavorita(Receita* r);
+
     bool removerFavorita(Receita* r);
-    bool ehFavorita(Receita* r);
-    std::vector<Receita*>& getFavoritas();
+
+    bool ehFavorita(Receita* r) const;
+
+    const std::vector<Receita*>& getFavoritas() const;
 };
 
 #endif

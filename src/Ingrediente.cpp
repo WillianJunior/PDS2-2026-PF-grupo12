@@ -1,24 +1,21 @@
 #include "../include/Ingrediente.hpp"
 
-Ingrediente::Ingrediente(std::string nome, int quant, std::string unidade, std::string tipo)
-    : _nomeI(nome), _quantidadeI(quant), _unidadeI(unidade), _tipoI(tipo) {}
+Ingrediente::Ingrediente(const std::string& nome, double quant,
+                         const std::string& unidade, const std::string& tipo)
+    : _nome(nome), _quantidade(quant), _unidade(unidade), _tipo(tipo) {}
 
-bool Ingrediente::verificar_unidades(int quant, std::string unidade) {
-    // verdadeiro se a unidade bate e ha quantidade local suficiente
-    return (unidade == _unidadeI) && (quant <= _quantidadeI);
+bool Ingrediente::verificarUnidades(double quant, const std::string& unidade) const {
+    return (unidade == _unidade) && (quant <= _quantidade);
 }
 
-bool Ingrediente::validar_ingrediente() {
-    // um ingrediente valido tem nome nao vazio e quantidade positiva
-    return !_nomeI.empty() && _quantidadeI > 0;
+bool Ingrediente::validar() const {
+    return !_nome.empty() && _quantidade > 0.0;
 }
 
-std::string Ingrediente::_getnomeI() { return _nomeI; }
+const std::string& Ingrediente::getNome() const     { return _nome; }
 
-std::string Ingrediente::_getunidadeI() { return _unidadeI; }
+const std::string& Ingrediente::getUnidade() const  { return _unidade; }
 
-std::string Ingrediente::_getTipoI() { return _tipoI; }
+const std::string& Ingrediente::getTipo() const     { return _tipo; }
 
-int Ingrediente::_getquantI() { return _quantidadeI; }
-
-Ingrediente::~Ingrediente() {}
+double Ingrediente::getQuantidade() const { return _quantidade; }

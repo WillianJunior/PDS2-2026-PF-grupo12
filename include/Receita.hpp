@@ -1,14 +1,12 @@
 #ifndef RECEITA_HPP
 #define RECEITA_HPP
-
 #include <string>
 #include <vector>
 #include "Avaliacao.hpp"
 #include "Ingrediente.hpp"
 
 enum class Dificuldade { Facil, Medio, Dificil };
-enum class Categoria  { Doce, Salgado, Vegano, Vegetariano, Outro };
-
+enum class Categoria   { Doce, Salgado, Vegano, Vegetariano, Outro };
 
 /**
  * @class Receita
@@ -21,24 +19,34 @@ private:
     std::string _instrucoes;
     int _tempoPreparo;
     Dificuldade _dificuldade;
-    Categoria _categoria;
+    Categoria   _categoria;
     std::vector<Avaliacao> _avaliacoes;
 
 public:
-    Receita(std::string titulo, int tempo, Dificuldade dificuldade, Categoria categoria);
+    Receita(const std::string& titulo, int tempo,
+            Dificuldade dificuldade, Categoria categoria);
 
     void adicionarIngrediente(const Ingrediente& ingrediente);
 
-    void definirInstrucoes(std::string texto);
-    void adicionarAvaliacao(Avaliacao post);
-    double calcularMediaNotas();
+    void definirInstrucoes(const std::string& texto);
 
-    std::string& getTitulo();
-    Dificuldade getDificuldade();
-    Categoria getCategoria();
-    std::string  getInstrucoes();
-    std::vector<Ingrediente> getIngredientes(); //  talvez precise criar um operator de saida para ingrediente
+    void adicionarAvaliacao(const Avaliacao& post);
 
+    double calcularMediaNotas() const;
+
+    const std::string& getTitulo() const;
+
+    Dificuldade getDificuldade() const;
+
+    Categoria   getCategoria() const;
+
+    int getTempoPreparo() const;
+
+    const std::string& getInstrucoes() const;
+
+    const std::vector<Ingrediente>& getIngredientes() const;
+    
+    const std::vector<Avaliacao>& getAvaliacoes() const;
 };
 
 #endif

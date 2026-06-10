@@ -1,41 +1,54 @@
 #ifndef SISTEMA_HPP
 #define SISTEMA_HPP
-
 #include <string>
+#include <list>
 #include <vector>
-#include "Receita.hpp"   
+#include "Receita.hpp"
 #include "Usuario.hpp"
+
 /**
  * @class Sistema
- * @brief O Sistema gerencia usuários, receitas e a sessão ativa.
+ * @brief Fachada que gerencia usuários, receitas e a sessão ativa.
+ *
+ * Usa std::list para garantir que ponteiros para elementos
+ * permaneçam válidos após inserções.
  */
 class Sistema {
 private:
-    std::vector<Usuario> _usuarios;
-    std::vector<Receita> _receitas;
-    Usuario* _usuarioAtivo = nullptr;   
+    std::list<Usuario> _usuarios;
+    std::list<Receita> _receitas;
+    Usuario* _usuarioAtivo = nullptr;
 
 public:
     Sistema();
 
-    bool cadastrarUsuario( std::string& nome,std::string& email, std::string& senha);
+    bool cadastrarUsuario(const std::string& nome,
+                          const std::string& email,
+                          const std::string& senha);
 
-    bool login( std::string& email,  std::string& senha);
+    bool login(const std::string& email, const std::string& senha);
+
     void logout();
 
-    Usuario* getUsuarioAtivo() ;
+    Usuario* getUsuarioAtivo() const;
 
-    Receita* cadastrarReceita( std::string& titulo, int tempoPreparo, Dificuldade dificuldade, Categoria categoria);
+    Receita* cadastrarReceita(const std::string& titulo, int tempoPreparo,
+                              Dificuldade dificuldade, Categoria categoria);
 
-    void removerReceita(std::string& titulo);
+    bool removerReceita(const std::string& titulo);
 
-    std::vector<Receita*> buscarPorTitulo( std::string& titulo);
+    std::vector<Receita*> buscarPorTitulo(const std::string& titulo);
+
     std::vector<Receita*> filtrarPorDificuldade(Dificuldade d);
+
     std::vector<Receita*> filtrarPorNotaMinima(double notaMinima);
 
-    void avaliar( std::string& tituloReceita, int nota,  std::string& comentario);
+    bool avaliar(const std::string& tituloReceita, int nota,
+                 const std::string& comentario);
 
-    std::vector<Receita>& getReceitas();
+    std::list<Receita>& getReceitas();
+    
+    const std::list<Receita>& getReceitas() const;
 };
 
 #endif

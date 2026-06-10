@@ -83,7 +83,7 @@ TEST_CASE("Cadastrar receita") {
 
     CHECK(s.getReceitas().size() == 1);
 
-     CHECK(&s.getReceitas()[0] == r);
+    CHECK(&s.getReceitas().front() == r);
 }
 
 TEST_CASE("Buscar receita") {

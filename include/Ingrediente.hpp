@@ -1,34 +1,30 @@
+
 #ifndef INGREDIENTE_HPP
 #define INGREDIENTE_HPP
 #include <string>
-
 
 /**
  * @class Ingrediente
  * @brief Representa um ingrediente com nome, quantidade, unidade e tipo.
  */
-class Ingrediente
-{
+class Ingrediente {
 private:
-
-    std::string _nomeI; //nome do ingrediente
-    int _quantidadeI; //quantidade (disponivel ou necessária, a depender de qual lista esta sendo chamada)
-    std::string _unidadeI; //unidade de medida da receita (talvez precisemos de uma função de conversão...)
-    std::string _tipoI; //esse eu não estou certo se vai aqui ou não. Imagino que sua utilidade esteja relacionada com a ferramenta de pesquisa.
+    std::string _nome;
+    double _quantidade;
+    std::string _unidade;
+    std::string _tipo;
 
 public:
-    Ingrediente(std::string nome, int quant, std::string unidade, std::string tipo); //construtor para ser usado em funções do tipo "adicionar ingrediente".
+    Ingrediente(const std::string& nome, double quant,
+                const std::string& unidade, const std::string& tipo);
 
-    bool verificar_unidades(int quant, std::string unidade); //verifica se o item está disponivel na quantidade/unidade informada (compara com os valores locais).
-    bool validar_ingrediente(); //verifica se o ingrediente é valido
+    bool verificarUnidades(double quant, const std::string& unidade) const;
+    bool validar() const;
 
-    //getters
-    std::string _getnomeI();
-    std::string _getunidadeI();
-    std::string _getTipoI();
-    int _getquantI();
-
-    ~Ingrediente();
+    const std::string& getNome() const;
+    const std::string& getUnidade() const;
+    const std::string& getTipo() const;
+    double getQuantidade() const;
 };
 
 #endif

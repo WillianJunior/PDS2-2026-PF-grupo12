@@ -10,13 +10,13 @@ TEST_CASE("Criacao de ingrediente") {
         "Doce"
     );
 
-    CHECK(i._getnomeI() == "Acucar");
+    CHECK(i.getNome() == "Acucar");
 
-    CHECK(i._getquantI() == 500);
+    CHECK(i.getQuantidade() == 500);
 
-    CHECK(i._getunidadeI() == "g");
+    CHECK(i.getUnidade() == "g");
 
-    CHECK(i._getTipoI() == "Doce");
+    CHECK(i.getTipo() == "Doce");
 }
 
 TEST_CASE("Validacao de quantidade") {
@@ -29,7 +29,7 @@ TEST_CASE("Validacao de quantidade") {
     );
 
     CHECK(
-        i.verificar_unidades(
+        i.verificarUnidades(
             500,
             "g"
         )
