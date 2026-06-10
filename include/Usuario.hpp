@@ -1,4 +1,3 @@
-
 #ifndef USUARIO_HPP
 #define USUARIO_HPP
 #include <vector>
@@ -31,17 +30,12 @@ public:
                       const std::string& novaSenha);
 
     void adicionarReceitaPropria(Receita* r);
-
     void removerReceitaPropria(Receita* r);
-
     const std::vector<Receita*>& getReceitasProprias() const;
 
     void adicionarFavorita(Receita* r);
-
     bool removerFavorita(Receita* r);
-
     bool ehFavorita(Receita* r) const;
-
     const std::vector<Receita*>& getFavoritas() const;
 };
 

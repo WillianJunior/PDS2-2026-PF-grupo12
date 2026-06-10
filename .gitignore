@@ -3,6 +3,7 @@ build/
 *.o
 *.exe
 *.out
+data/*.csv
 
 # Arquivos de Sistema/Linux
 .cache/

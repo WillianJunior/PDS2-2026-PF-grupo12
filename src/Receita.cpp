@@ -1,4 +1,4 @@
-#include "../include/Receita.hpp"
+#include "Receita.hpp"
 
 Receita::Receita(const std::string& titulo, int tempo,
                  Dificuldade dificuldade, Categoria categoria)
@@ -24,11 +24,11 @@ double Receita::calcularMediaNotas() const {
     return soma / static_cast<double>(_avaliacoes.size());
 }
 
-const std::string& Receita::getTitulo() const              { return _titulo; }
-Dificuldade        Receita::getDificuldade() const         { return _dificuldade; }
-Categoria          Receita::getCategoria() const           { return _categoria; }
-int                Receita::getTempoPreparo() const        { return _tempoPreparo; }
-const std::string& Receita::getInstrucoes() const          { return _instrucoes; }
+const std::string& Receita::getTitulo() const       { return _titulo; }
+Dificuldade        Receita::getDificuldade() const  { return _dificuldade; }
+Categoria          Receita::getCategoria() const    { return _categoria; }
+int                Receita::getTempoPreparo() const { return _tempoPreparo; }
+const std::string& Receita::getInstrucoes() const   { return _instrucoes; }
 
 const std::vector<Ingrediente>& Receita::getIngredientes() const {
     return _ingredientes;
