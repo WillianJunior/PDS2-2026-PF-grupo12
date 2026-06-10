@@ -34,3 +34,5 @@ Categoria Receita::getCategoria() { return _categoria; }
 std::string Receita::getInstrucoes() { return _instrucoes; }
 
 std::vector<Ingrediente> Receita::getIngredientes() { return _ingredientes; }
+
+int Receita::getTempoPreparo() const { return _tempoPreparo; }

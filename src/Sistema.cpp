@@ -121,9 +121,9 @@ void Sistema::salvar() {
         std::string ings = "";
         for (auto& i : r.getIngredientes()) {
             if(!ings.empty()) ings += ";";
-            ings += i._getNome() + "|"
-                  + std::to_string(i.getquantI()) + "|"
-                  + i.getUnidadeI() + "|"
+            ings += i._getnomeI() + "|"
+                  + std::to_string(i._getquantI()) + "|"
+                  + i._getunidadeI() + "|"
                   + i._getTipoI();
         }
 
@@ -131,7 +131,7 @@ void Sistema::salvar() {
            << dificuldadeParaStr(r.getDificuldade()) << ","
            << categoriaParaStr(r.getCategoria())     << ","
            << r.getInstrucoes()                      << ","
-           << ings                                   << "\n"
+           << ings                                   << "\n";
     }
     
 }
@@ -158,7 +158,7 @@ void Sistema::carregar() {
         while (std::getline(si, bloco, ';')) {
             std::stringstream sb(bloco);
             std::string nome, squant, unidade, tipo;
-            std::getline(sb, nome, "|");
+            std::getline(sb, nome, '|');
             std::getline(sb, squant, '|');
             std::getline(sb, unidade, '|');
             std::getline(sb, tipo, '|');
@@ -167,3 +167,5 @@ void Sistema::carregar() {
         }
     }
 }
+
+std::vector<Usuario>& Sistema::getUsuarios() { return _usuarios; }

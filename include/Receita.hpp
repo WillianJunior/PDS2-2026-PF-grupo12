@@ -38,7 +38,7 @@ public:
     Categoria getCategoria();
     std::string  getInstrucoes();
     std::vector<Ingrediente> getIngredientes(); //  talvez precise criar um operator de saida para ingrediente
-
+    int getTempoPreparo() const;
 };
 
 #endif

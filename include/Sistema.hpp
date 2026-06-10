@@ -46,6 +46,7 @@ public:
     void avaliar( std::string& tituloReceita, int nota,  std::string& comentario);
 
     std::vector<Receita>& getReceitas();
+    std::vector<Usuario>& getUsuarios();
 };
 
 #endif
