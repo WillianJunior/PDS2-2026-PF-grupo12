@@ -24,7 +24,10 @@ public:
 
     const std::string& getNome() const;
     const std::string& getEmail() const;
+    const std::string& getSenha() const;
 
+
+    
     bool autenticar(const std::string& senha) const;
     bool alterarSenha(const std::string& senhaAtual,
                       const std::string& novaSenha);

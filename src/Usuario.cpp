@@ -15,6 +15,8 @@ Usuario::Usuario(const std::string& nome,
 
 const std::string& Usuario::getNome() const  { return _nome; }
 const std::string& Usuario::getEmail() const { return _email; }
+const std::string& Usuario::getSenha() const { return _senha; }
+
 
 bool Usuario::autenticar(const std::string& senha) const {
     return _senha == senha;

@@ -96,32 +96,36 @@ int main() {
             Categoria c = (cat == 2) ? Categoria::Salgado : (cat == 3) ? Categoria::Vegano :
                           (cat == 4) ? Categoria::Vegetariano : (cat == 5) ? Categoria::Outro : Categoria::Doce;
 
-            Receita* r = s.cadastrarReceita(titulo, tempo, d, c);
-            r->definirInstrucoes(instrucoes);
+            
+            try{
+                Receita* r = s.cadastrarReceita(titulo, tempo, d, c);
+                r->definirInstrucoes(instrucoes);
 
-            std::cout << "Quantos ingredientes? "; std::cin >> n;
-            std::cin.ignore();
-            for (int i = 0; i < n; ++i) {
-                std::string nome, unidade, tipo;
-                int quant;
-                std::cout << "-- Ingrediente " << (i+1) << " --\n";
-
-                std::cout << "Nome: ";       
-                std::getline(std::cin, nome);
-
-                std::cout << "Quantidade: "; 
-                std::cin >> quant;
-
+                std::cout << "Quantos ingredientes? "; std::cin >> n;
                 std::cin.ignore();
-                std::cout << "Unidade: ";   
-                std::getline(std::cin, unidade);
+                for (int i = 0; i < n; ++i) {
+                    std::string nome, unidade, tipo;
+                    int quant;
+                    std::cout << "-- Ingrediente " << (i+1) << " --\n";
+                    std::cout << "Nome: ";
+                    std::getline(std::cin, nome);
 
-                std::cout << "Tipo: ";       
-                std::getline(std::cin, tipo);
+                    std::cout << "Quantidade: ";
+                    std::cin >> quant;
 
-                r->adicionarIngrediente(Ingrediente(nome, quant, unidade, tipo));
+                    std::cin.ignore();
+                    std::cout << "Unidade: ";
+                    std::getline(std::cin, unidade);
+
+                    std::cout << "Tipo: ";
+                    std::getline(std::cin, tipo);
+
+                    r->adicionarIngrediente(Ingrediente(nome, quant, unidade, tipo));
+                    }
+                std::cout << "Receita cadastrada!\n";
+            } catch (const std::invalid_argument& e) {
+                std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
             }
-            std::cout << "Receita cadastrada!\n";
         }
         else if (opcao == 5) {
             const auto& receitas = s.getReceitas();

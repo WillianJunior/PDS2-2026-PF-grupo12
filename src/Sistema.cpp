@@ -3,6 +3,8 @@
 #include <cctype>
 #include <fstream>
 #include <sstream>
+#include <iostream>
+
 
 namespace {
     // helper local: lowercase de uma string
@@ -89,7 +91,14 @@ Receita* Sistema::cadastrarReceita(const std::string& titulo, int tempoPreparo,
 bool Sistema::removerReceita(const std::string& titulo) {
     for (auto it = _receitas.begin(); it != _receitas.end(); ++it) {
         if (it->getTitulo() == titulo) {
-            _receitas.erase(it);
+            Receita* alvo = &(*it);                  
+
+            for (auto& u : _usuarios) {
+                u.removerReceitaPropria(alvo);
+                u.removerFavorita(alvo);
+            }
+
+            _receitas.erase(it);                 
             return true;
         }
     }
@@ -160,12 +169,22 @@ namespace {
 void Sistema::salvar() {
     // --- usuarios ---
     std::ofstream fu("data/usuarios.csv");
+    if (!fu) {
+        std::cerr << "Erro: nao foi possivel abrir data/usuarios.csv para escrita\n";
+        return;
+    }
     for (const auto& u : _usuarios) {
-        fu << u.getNome() << "," << u.getEmail() << "\n";
+        fu << u.getNome() << "," << u.getEmail() << "," << u.getSenha() << "\n";
+        //atenção aqui! coloquei texto simples na senha, mas sugiro colocarmos  hash no futuro - Bernardo.
+        //mas resolve problema de senha vazia passando no login que estava tendo. Olhar em carregar() tambem.
     }
 
     // --- receitas ---
     std::ofstream fr("data/receitas.csv");
+    if (!fr) {                                          // <-- mesmo guard aqui
+        std::cerr << "Erro: nao foi possivel abrir data/receitas.csv para escrita\n";
+        return;
+    }
     for (const auto& r : _receitas) {
         std::string ings;
         for (const auto& i : r.getIngredientes()) {
@@ -195,47 +214,54 @@ void Sistema::carregar() {
     std::string linha;
     while (std::getline(fu, linha)) {
         std::stringstream ss(linha);
-        std::string nome, email;
+        std::string nome, email, senha;
         std::getline(ss, nome,  ',');
         std::getline(ss, email, ',');
+        std::getline(ss, senha, ',');
+        //aqui coloquei pra carregar a senha, nao rolava no login pois nao salvava em nenhum lugar (precisa ser mais seguro na vida real)
         if (!nome.empty()) {
-            _usuarios.emplace_back(nome, email, "");
+            _usuarios.emplace_back(nome, email, senha);
         }
     }
 
     // --- receitas ---
     std::ifstream fr("data/receitas.csv");
     while (std::getline(fr, linha)) {
-        std::stringstream ss(linha);
-        std::string titulo, stempo, sdif, scat, instrucoes, ings;
-        std::getline(ss, titulo,     ',');
-        std::getline(ss, stempo,     ',');
-        std::getline(ss, sdif,       ',');
-        std::getline(ss, scat,       ',');
-        std::getline(ss, instrucoes, ',');
-        std::getline(ss, ings,       ',');
+        try {
+            std::stringstream ss(linha);
+            std::string titulo, stempo, sdif, scat, instrucoes, ings;
+            std::getline(ss, titulo,     ',');
+            std::getline(ss, stempo,     ',');
+            std::getline(ss, sdif,       ',');
+            std::getline(ss, scat,       ',');
+            std::getline(ss, instrucoes, ',');
+            std::getline(ss, ings,       ',');
 
-        if (titulo.empty()) continue;
+            if (titulo.empty()) continue;
 
-        _receitas.emplace_back(titulo, std::stoi(stempo),
-                               strParaDificuldade(sdif),
-                               strParaCategoria(scat));
-        Receita& r = _receitas.back();
-        r.definirInstrucoes(instrucoes);
+            _receitas.emplace_back(titulo, std::stoi(stempo),
+                                   strParaDificuldade(sdif),
+                                   strParaCategoria(scat));
+            Receita& r = _receitas.back();
+            r.definirInstrucoes(instrucoes);
 
-        std::stringstream si(ings);
-        std::string bloco;
-        while (std::getline(si, bloco, ';')) {
-            std::stringstream sb(bloco);
-            std::string nome, squant, unidade, tipo;
-            std::getline(sb, nome,    '|');
-            std::getline(sb, squant,  '|');
-            std::getline(sb, unidade, '|');
-            std::getline(sb, tipo,    '|');
-            if (!nome.empty()) {
-                r.adicionarIngrediente(Ingrediente(nome, std::stod(squant),
-                                                   unidade, tipo));
+            std::stringstream si(ings);
+            std::string bloco;
+            while (std::getline(si, bloco, ';')) {
+                std::stringstream sb(bloco);
+                std::string nome, squant, unidade, tipo;
+                std::getline(sb, nome,    '|');
+                std::getline(sb, squant,  '|');
+                std::getline(sb, unidade, '|');
+                std::getline(sb, tipo,    '|');
+                if (!nome.empty()) {
+                    r.adicionarIngrediente(Ingrediente(nome, std::stod(squant),
+                                                       unidade, tipo));
+                }
             }
+        } catch (const std::exception& e) {
+            std::cerr << "Aviso: linha de receita ignorada (" << e.what() << "): "
+                      << linha << "\n";
         }
     }
 }
