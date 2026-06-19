@@ -1,10 +1,17 @@
 #include "Usuario.hpp"
 #include <algorithm>
+#include <stdexcept>
+
 
 Usuario::Usuario(const std::string& nome,
                  const std::string& email,
                  const std::string& senha)
-    : _nome(nome), _email(email), _senha(senha) {}
+    : _nome(nome), _email(email), _senha(senha) {
+    if (nome.empty())
+        throw std::invalid_argument("Usuario: nome nao pode ser vazio");
+    if (email.find('@') == std::string::npos)
+        throw std::invalid_argument("Usuario: email invalido");
+}
 
 const std::string& Usuario::getNome() const  { return _nome; }
 const std::string& Usuario::getEmail() const { return _email; }
@@ -16,7 +23,8 @@ bool Usuario::autenticar(const std::string& senha) const {
 bool Usuario::alterarSenha(const std::string& senhaAtual,
                            const std::string& novaSenha) {
     if (_senha != senhaAtual) return false;
-    if (novaSenha.empty())    return false;
+    if (novaSenha.empty())
+        throw std::invalid_argument("Usuario: nova senha nao pode ser vazia");
     _senha = novaSenha;
     return true;
 }

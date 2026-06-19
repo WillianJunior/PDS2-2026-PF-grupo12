@@ -1,8 +1,17 @@
 #include "../include/Ingrediente.hpp"
+#include <stdexcept>
+
 
 Ingrediente::Ingrediente(const std::string& nome, double quant,
                          const std::string& unidade, const std::string& tipo)
-    : _nome(nome), _quantidade(quant), _unidade(unidade), _tipo(tipo) {}
+    : _nome(nome), _quantidade(quant), _unidade(unidade), _tipo(tipo) {
+    if (nome.empty())
+        throw std::invalid_argument("Ingrediente: nome nao pode ser vazio");
+    if (quant <= 0.0)
+        throw std::invalid_argument("Ingrediente: quantidade deve ser positiva");
+    if (unidade.empty())
+        throw std::invalid_argument("Ingrediente: unidade nao pode ser vazia");
+}
 
 bool Ingrediente::verificarUnidades(double quant, const std::string& unidade) const {
     return (unidade == _unidade) && (quant <= _quantidade);

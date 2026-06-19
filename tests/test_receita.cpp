@@ -2,6 +2,8 @@
 
 #include "../include/Receita.hpp"
 #include "../include/Avaliacao.hpp"
+#include "../include/Usuario.hpp"
+#include <stdexcept>
 
 TEST_CASE("Criar receita") {
 
@@ -63,14 +65,16 @@ TEST_CASE("Media de notas") {
         Categoria::Doce
     );
 
+    Usuario u("Joana", "joana@email.com", "123");
+
     Avaliacao a1(
-        nullptr,
+        &u,
         4,
         "Boa"
     );
 
     Avaliacao a2(
-        nullptr,
+        &u,
         2,
         "Regular"
     );
@@ -83,5 +87,38 @@ TEST_CASE("Media de notas") {
         r.calcularMediaNotas()
         ==
         doctest::Approx(3.0)
+    );
+}
+
+//tests de excecao --------------
+
+TEST_CASE("Receita com titulo vazio lanca excecao") {
+    CHECK_THROWS_AS(
+        Receita("", 30, Dificuldade::Facil, Categoria::Doce),
+        std::invalid_argument
+    );
+}
+ 
+TEST_CASE("Receita com tempo negativo lanca excecao") {
+    CHECK_THROWS_AS(
+        Receita("Bolo", -10, Dificuldade::Facil, Categoria::Doce),
+        std::invalid_argument
+    );
+}
+ 
+TEST_CASE("Receita valida nao lanca excecao") {
+    CHECK_NOTHROW(
+        Receita("Bolo", 30, Dificuldade::Facil, Categoria::Doce)
+    );
+}
+ 
+TEST_CASE("Adicionar ingrediente invalido lanca excecao") {
+    Receita r("Sopa", 20, Dificuldade::Facil, Categoria::Salgado);
+ 
+    // Ingrediente nao pode ser construido invalido (o proprio construtor
+    // ja lanca), entao testamos que a tentativa de cria-lo falha
+    CHECK_THROWS_AS(
+        Ingrediente("", -5, "", ""),
+        std::invalid_argument
     );
 }

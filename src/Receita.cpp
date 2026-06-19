@@ -1,11 +1,19 @@
 #include "Receita.hpp"
+#include <stdexcept>
 
 Receita::Receita(const std::string& titulo, int tempo,
                  Dificuldade dificuldade, Categoria categoria)
     : _titulo(titulo), _instrucoes(""), _tempoPreparo(tempo),
-      _dificuldade(dificuldade), _categoria(categoria) {}
+      _dificuldade(dificuldade), _categoria(categoria) {
+    if (titulo.empty())
+        throw std::invalid_argument("Receita: titulo nao pode ser vazio");
+    if (tempo < 0)
+        throw std::invalid_argument("Receita: tempo de preparo nao pode ser negativo");
+}
 
 void Receita::adicionarIngrediente(const Ingrediente& ingrediente) {
+    if (!ingrediente.validar())
+        throw std::invalid_argument("Receita: ingrediente invalido");
     _ingredientes.push_back(ingrediente);
 }
 
