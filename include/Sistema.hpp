@@ -2,9 +2,11 @@
 #define SISTEMA_HPP
 #include <string>
 #include <list>
+#include <map>
 #include <vector>
 #include "Receita.hpp"
 #include "Usuario.hpp"
+#include "TemplateReceita.hpp"
 
 /**
  * @class Sistema
@@ -20,12 +22,15 @@ class Sistema {
 private:
     std::list<Usuario> _usuarios;
     std::list<Receita> _receitas;
+    std::map<std::string, TemplateReceita> _templates;
     Usuario* _usuarioAtivo = nullptr;
 
     static std::string dificuldadeParaStr(Dificuldade d);
     static std::string categoriaParaStr(Categoria c);
+    static std::string nAcessoParaStr(nivelAcesso n);
     static Dificuldade strParaDificuldade(const std::string& s);
     static Categoria   strParaCategoria(const std::string& s);
+    static nivelAcesso strParaNAcesso(const std::string& s);
 
 public:
     Sistema();
@@ -39,7 +44,13 @@ public:
     Usuario* getUsuarioAtivo() const;
 
     Receita* cadastrarReceita(const std::string& titulo, int tempoPreparo,
-                              Dificuldade dificuldade, Categoria categoria);
+                              Dificuldade dificuldade, Categoria categoria, int rendimento);
+    
+    TemplateReceita* cadastrarTemplate(const std::string& titulo, std::string descricao, int rendimentoT);
+
+    std::vector<Ingrediente> getIngredientesTemplate(std::string chave) ;
+
+    int getRendimentoTemplate(std::string chave) ;
 
     bool removerReceita(const std::string& titulo);
 

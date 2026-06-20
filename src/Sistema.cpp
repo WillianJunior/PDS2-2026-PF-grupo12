@@ -81,11 +81,23 @@ void Sistema::logout() { _usuarioAtivo = nullptr; }
 Usuario* Sistema::getUsuarioAtivo() const { return _usuarioAtivo; }
 
 Receita* Sistema::cadastrarReceita(const std::string& titulo, int tempoPreparo,
-                                   Dificuldade dificuldade, Categoria categoria) {
-    _receitas.emplace_back(titulo, tempoPreparo, dificuldade, categoria);
+                                   Dificuldade dificuldade, Categoria categoria, int rendimento) {
+    _receitas.emplace_back(titulo, tempoPreparo, dificuldade, categoria, rendimento);
     Receita* novo = &_receitas.back();
     if (_usuarioAtivo) _usuarioAtivo->adicionarReceitaPropria(novo);
     return novo;
+}
+
+TemplateReceita* Sistema::cadastrarTemplate(const std::string& titulo, std::string descricao, int rendimentoT){
+     //aqui caberia implementar um sistema de chave de acesso. Por enquanto essa função permanece incompleta
+}
+
+std::vector<Ingrediente> Sistema::getIngredientesTemplate(std::string chave) {
+    return _templates[chave].getIngredientesT();
+}
+
+int Sistema::getRendimentoTemplate(std::string chave) {
+    return _templates[chave].getRendimentoT();
 }
 
 bool Sistema::removerReceita(const std::string& titulo) {

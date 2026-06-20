@@ -15,9 +15,10 @@ private:
     std::string _nome;
     std::string _descricao;
     std::vector<Ingrediente> _ingredientes;
+    int _rendimentoT;
 
 public:
-    TemplateReceita(const std::string& nome, const std::string& descricao);
+    TemplateReceita(const std::string& nome, const std::string& descricao, int rendimentoT);
 
     void adicionarIngrediente(const Ingrediente& ingrediente);
 
@@ -26,11 +27,12 @@ public:
 
     /** Gera uma nova Receita pré-preenchida com os ingredientes deste template. */
     Receita gerarReceita(const std::string& titulo, int tempo,
-                         Dificuldade dificuldade, Categoria categoria) const;
+                         Dificuldade dificuldade, Categoria categoria, int rendimento) const;
 
     const std::string& getNome() const;
     const std::string& getDescricao() const;
     const std::vector<Ingrediente>& getIngredientesT() const;
+    const int& getRendimentoT() const;
 };
 
 #endif

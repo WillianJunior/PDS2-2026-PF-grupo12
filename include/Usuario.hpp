@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 
-class Receita;
+class Receita; //<- que porra é essa (com todo respeito)
+enum class nivelAcesso {Chef, Cozinheiro};
 
 /**
  * @class Usuario
@@ -16,6 +17,7 @@ private:
     std::string _senha;
     std::vector<Receita*> _receitasProprias;
     std::vector<Receita*> _favoritas;
+    nivelAcesso _nivelAcesso;
 
 public:
     Usuario(const std::string& nome,
@@ -25,9 +27,9 @@ public:
     const std::string& getNome() const;
     const std::string& getEmail() const;
     const std::string& getSenha() const;
+    const nivelAcesso& getAcesso() const;
 
 
-    
     bool autenticar(const std::string& senha) const;
     bool alterarSenha(const std::string& senhaAtual,
                       const std::string& novaSenha);

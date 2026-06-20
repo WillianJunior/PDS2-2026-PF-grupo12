@@ -2,6 +2,7 @@
 #define RECEITA_HPP
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "Avaliacao.hpp"
 #include "Ingrediente.hpp"
 
@@ -21,23 +22,28 @@ private:
     Dificuldade _dificuldade;
     Categoria   _categoria;
     std::vector<Avaliacao> _avaliacoes;
+    int _rendimento;
 
 public:
     Receita(const std::string& titulo, int tempo,
-            Dificuldade dificuldade, Categoria categoria);
+            Dificuldade dificuldade, Categoria categoria, int _rendimento);
 
     void adicionarIngrediente(const Ingrediente& ingrediente);
     void definirInstrucoes(const std::string& texto);
     void adicionarAvaliacao(const Avaliacao& post);
+    void ordenarIngrediente(std::vector<Ingrediente>& ingredientes); //ordena ingredientes em ordem alfabética dos nomes.
+    void atribuirIngredientes(std::vector<Ingrediente> NovoIngrediente);
+    std::vector<Ingrediente> apropriarRendimento(const std::vector<Ingrediente>& ingredientes, int rendimentoR, int rendimentoT);
     double calcularMediaNotas() const;
 
     const std::string& getTitulo() const;
-    Dificuldade getDificuldade() const;
-    Categoria   getCategoria() const;
-    int getTempoPreparo() const;
+    const Dificuldade& getDificuldade() const;
+    const Categoria&   getCategoria() const;
+    const int& getTempoPreparo() const;
     const std::string& getInstrucoes() const;
     const std::vector<Ingrediente>& getIngredientes() const;
     const std::vector<Avaliacao>& getAvaliacoes() const;
+    const int& getRendimento() const;
 };
 
 #endif

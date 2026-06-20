@@ -2,13 +2,15 @@
 #include <stdexcept>
 
 Receita::Receita(const std::string& titulo, int tempo,
-                 Dificuldade dificuldade, Categoria categoria)
+                 Dificuldade dificuldade, Categoria categoria, int rendimento)
     : _titulo(titulo), _instrucoes(""), _tempoPreparo(tempo),
-      _dificuldade(dificuldade), _categoria(categoria) {
+      _dificuldade(dificuldade), _categoria(categoria), _rendimento(rendimento) {
     if (titulo.empty())
         throw std::invalid_argument("Receita: titulo nao pode ser vazio");
     if (tempo < 0)
         throw std::invalid_argument("Receita: tempo de preparo nao pode ser negativo");
+    if (rendimento < 1)
+        throw std::invalid_argument("Receita: receita deve servir ao menos uma pessoa");
 }
 
 void Receita::adicionarIngrediente(const Ingrediente& ingrediente) {
@@ -25,6 +27,30 @@ void Receita::adicionarAvaliacao(const Avaliacao& post) {
     _avaliacoes.push_back(post);
 }
 
+void Receita::atribuirIngredientes(std::vector<Ingrediente> NovoIngrediente){
+    this->_ingredientes = NovoIngrediente;
+}
+
+void Receita::ordenarIngrediente(std::vector<Ingrediente>& ingredientes) {
+
+    std::sort(
+        ingredientes.begin(), ingredientes.end(),
+        [](const Ingrediente& a, const Ingrediente& b) {
+            return a.getNome() < b.getNome();
+        }
+    );
+}
+
+std::vector<Ingrediente> Receita::apropriarRendimento(const std::vector<Ingrediente>& ingredientesR, int rendimentoR, int rendimentoT){
+
+    double DrendT, DrendR = 0;
+    double razao = DrendT / DrendR; //ambos rendimentos são criados previamente de maneira que excecoes ja são lancadas caso os valores sejam invalidos (<1).
+
+    for(auto ingrediente : ingredientesR){
+        ingrediente.alterarQuantidade(razao);
+    }
+}
+
 double Receita::calcularMediaNotas() const {
     if (_avaliacoes.empty()) return 0.0;
     double soma = 0.0;
@@ -32,11 +58,12 @@ double Receita::calcularMediaNotas() const {
     return soma / static_cast<double>(_avaliacoes.size());
 }
 
-const std::string& Receita::getTitulo() const       { return _titulo; }
-Dificuldade        Receita::getDificuldade() const  { return _dificuldade; }
-Categoria          Receita::getCategoria() const    { return _categoria; }
-int                Receita::getTempoPreparo() const { return _tempoPreparo; }
-const std::string& Receita::getInstrucoes() const   { return _instrucoes; }
+const std::string&        Receita::getTitulo() const       { return _titulo; }
+const Dificuldade&        Receita::getDificuldade() const  { return _dificuldade; }
+const Categoria&          Receita::getCategoria() const    { return _categoria; }
+const int&                Receita::getTempoPreparo() const { return _tempoPreparo; }
+const std::string&        Receita::getInstrucoes() const   { return _instrucoes; }
+const int&                Receita::getRendimento() const   { return _rendimento; }
 
 const std::vector<Ingrediente>& Receita::getIngredientes() const {
     return _ingredientes;

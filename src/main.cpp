@@ -26,13 +26,14 @@ int main() {
         std::cout << "2. Login\n";
         std::cout << "3. Logout\n";
         std::cout << "4. Cadastrar receita\n";
-        std::cout << "5. Listar receitas\n";
-        std::cout << "6. Buscar receita\n";
-        std::cout << "7. Filtrar por dificuldade\n";
-        std::cout << "8. Avaliar receita\n";
-        std::cout << "9. Favoritar receita\n";
-        std::cout << "10. Ver favoritas\n";
-        std::cout << "11. Salvar dados\n";
+        std::cout << "5. Cadastrar receita via template\n";
+        std::cout << "6. Listar receitas\n";
+        std::cout << "7. Buscar receita\n";
+        std::cout << "8. Filtrar por dificuldade\n";
+        std::cout << "9. Avaliar receita\n";
+        std::cout << "10. Favoritar receita\n";
+        std::cout << "11. Ver favoritas\n";
+        std::cout << "12. Salvar dados\n";
         std::cout << "0. Sair\n";
         std::cout << "Opcao: ";
         std::cin >> opcao;
@@ -74,7 +75,7 @@ int main() {
                 continue;
             }
             std::string titulo, instrucoes;
-            int tempo, dif, cat, n;
+            int tempo, dif, cat, n, rend;
 
             std::cout << "Titulo: ";          
             std::getline(std::cin, titulo);
@@ -88,6 +89,9 @@ int main() {
             std::cout << "Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): "; 
             std::cin >> cat;
 
+            std::cout << "Rendimento (Numero de pessoas que a receita serve.)";
+            std::cin >> rend;
+
             std::cin.ignore();
             std::cout << "Instrucoes: ";      
             std::getline(std::cin, instrucoes);
@@ -98,7 +102,7 @@ int main() {
 
             
             try{
-                Receita* r = s.cadastrarReceita(titulo, tempo, d, c);
+                Receita* r = s.cadastrarReceita(titulo, tempo, d, c, rend);
                 r->definirInstrucoes(instrucoes);
 
                 std::cout << "Quantos ingredientes? "; std::cin >> n;
@@ -128,6 +132,55 @@ int main() {
             }
         }
         else if (opcao == 5) {
+            if (!s.getUsuarioAtivo()) {
+                std::cout << "Faca login primeiro.\n";
+                continue;
+            }
+            std::string titulo, instrucoes, chave_template;
+            int tempo, dif, cat, n, rend;
+
+            std::cout << "Titulo: ";          
+            std::getline(std::cin, titulo);
+
+            std::cout << "Tempo (min): ";     
+            std::cin >> tempo;
+
+            std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): "; 
+            std::cin >> dif;
+
+            std::cout << "Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): "; 
+            std::cin >> cat;
+
+            std::cout << "Rendimento (Numero de pessoas que a receita serve.)";
+            std::cin >> rend;
+
+            std::cin.ignore();
+            std::cout << "Instrucoes: ";      
+            std::getline(std::cin, instrucoes);
+
+            Dificuldade d = (dif == 2) ? Dificuldade::Medio : (dif == 3) ? Dificuldade::Dificil : Dificuldade::Facil;
+            Categoria c = (cat == 2) ? Categoria::Salgado : (cat == 3) ? Categoria::Vegano :
+                          (cat == 4) ? Categoria::Vegetariano : (cat == 5) ? Categoria::Outro : Categoria::Doce;
+            
+            try{
+                Receita* r = s.cadastrarReceita(titulo, tempo, d, c, rend);
+                r->definirInstrucoes(instrucoes);
+
+                std::cout << "Insira o nome do template a ser usado: ";
+                std::getline(std::cin, chave_template);
+
+
+                r->atribuirIngredientes(s.getIngredientesTemplate(chave_template));
+                std::cout << "receita cadastrada\n";
+
+                r->apropriarRendimento(r->getIngredientes(), r->getRendimento(), s.getRendimentoTemplate(chave_template));
+
+            } catch (const std::invalid_argument& e) {
+                std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
+            }
+            
+        }
+        else if (opcao == 6) {
             const auto& receitas = s.getReceitas();
             if (receitas.empty()) {
                 std::cout << "Nenhuma receita.\n";
@@ -141,7 +194,7 @@ int main() {
                 }
             }
         }
-        else if (opcao == 6) {
+        else if (opcao == 7) {
             std::string titulo;
             std::cout << "Titulo a buscar: "; 
             std::getline(std::cin, titulo);
@@ -152,7 +205,7 @@ int main() {
             for (auto* r : res)
                 std::cout << "- " << r->getTitulo() << "\n";
         }
-        else if (opcao == 7) {
+        else if (opcao == 8) {
             int dif;
             std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): "; 
             std::cin >> dif;
@@ -165,7 +218,7 @@ int main() {
             for (auto* r : res)
                 std::cout << "- " << r->getTitulo() << "\n";
         }
-        else if (opcao == 8) {
+        else if (opcao == 9) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -187,7 +240,7 @@ int main() {
             else
                 std::cout << "Receita nao encontrada.\n";
         }
-        else if (opcao == 9) {
+        else if (opcao == 10) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -205,7 +258,7 @@ int main() {
                 std::cout << "Favoritada!\n";
             }
         }
-        else if (opcao == 10) {
+        else if (opcao == 11) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -219,7 +272,7 @@ int main() {
                     std::cout << "- " << r->getTitulo() << "\n";
             }
         }
-        else if (opcao == 11) {
+        else if (opcao == 12) {
             s.salvar();
             std::cout << "Salvo em data/\n";
         }

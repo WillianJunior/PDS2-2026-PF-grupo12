@@ -21,10 +21,11 @@ public:
     bool verificarUnidades(double quant, const std::string& unidade) const;
     bool validar() const;
 
+    void alterarQuantidade(double razao);
     const std::string& getNome() const;
     const std::string& getUnidade() const;
     const std::string& getTipo() const;
-    double getQuantidade() const;
+    const double& getQuantidade() const;
 };
 
 #endif

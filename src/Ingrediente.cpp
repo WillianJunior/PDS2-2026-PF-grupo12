@@ -21,10 +21,14 @@ bool Ingrediente::validar() const {
     return !_nome.empty() && _quantidade > 0.0;
 }
 
+void Ingrediente::alterarQuantidade(double razao){
+    this->_quantidade = this->_quantidade*razao; 
+}
+
 const std::string& Ingrediente::getNome() const     { return _nome; }
 
 const std::string& Ingrediente::getUnidade() const  { return _unidade; }
 
 const std::string& Ingrediente::getTipo() const     { return _tipo; }
 
-double Ingrediente::getQuantidade() const { return _quantidade; }
+const double& Ingrediente::getQuantidade() const { return _quantidade; }
