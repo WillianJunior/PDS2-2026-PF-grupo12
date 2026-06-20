@@ -27,34 +27,51 @@ int main() {
         std::cout << "3. Logout\n";
         std::cout << "4. Cadastrar receita\n";
         std::cout << "5. Cadastrar receita via template\n";
-        std::cout << "6. Listar receitas\n";
-        std::cout << "7. Buscar receita\n";
-        std::cout << "8. Filtrar por dificuldade\n";
-        std::cout << "9. Avaliar receita\n";
-        std::cout << "10. Favoritar receita\n";
-        std::cout << "11. Ver favoritas\n";
-        std::cout << "12. Salvar dados\n";
+        std::cout << "6. Cadastrar Template\n";
+        std::cout << "7. Listar receitas\n";
+        std::cout << "8. Listar templates\n";
+        std::cout << "9. Buscar receita\n";
+        std::cout << "10. Filtrar por dificuldade\n";
+        std::cout << "11. Avaliar receita\n";
+        std::cout << "12. Favoritar receita\n";
+        std::cout << "13. Ver favoritas\n";
+        std::cout << "14. Salvar dados\n";
         std::cout << "0. Sair\n";
         std::cout << "Opcao: ";
         std::cin >> opcao;
         std::cin.ignore();
 
         if (opcao == 1) {
-            std::string nome, email, senha;
+            try{
+                std::string nome, email, senha;
+                int Acesso;
 
-            std::cout << "Nome: ";  
-            std::getline(std::cin, nome);
+                std::cout << "Nome: ";  
+                std::getline(std::cin, nome);
 
-            std::cout << "Email: "; 
-            std::getline(std::cin, email);
+                std::cout << "Email: "; 
+                std::getline(std::cin, email);
 
-            std::cout << "Senha: "; 
-            std::getline(std::cin, senha);
+                std::cout << "Senha: "; 
+                std::getline(std::cin, senha);
 
-            if (s.cadastrarUsuario(nome, email, senha))
-                std::cout << "Usuario cadastrado!\n";
-            else
-                std::cout << "Falha no cadastro.\n";
+                std::cout << "Escolha seu o tipo do seu perfil (1-Cozinheiro 2-Chef de cozinha): ";
+                std::cin >> Acesso;
+                std::cin.ignore();
+
+                if(Acesso < 1 || Acesso > 2){
+                    throw(std::invalid_argument("Tipo de acesso inválido"));
+                }
+
+                nivelAcesso nAcesso = (Acesso = 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef; 
+
+                if (s.cadastrarUsuario(nome, email, senha, nAcesso))
+                    std::cout << "Usuario cadastrado!\n";
+                else
+                    std::cout << "Falha no cadastro.\n";
+            } catch(const std::invalid_argument e){
+                std::cout << "Falha no cadastro: " << e.what() << std::endl;
+            }
         }
         else if (opcao == 2) {
             std::string email, senha;
@@ -137,7 +154,7 @@ int main() {
                 continue;
             }
             std::string titulo, instrucoes, chave_template;
-            int tempo, dif, cat, n, rend;
+            int tempo, dif, cat, rend;
 
             std::cout << "Titulo: ";          
             std::getline(std::cin, titulo);
@@ -151,7 +168,7 @@ int main() {
             std::cout << "Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): "; 
             std::cin >> cat;
 
-            std::cout << "Rendimento (Numero de pessoas que a receita serve.)";
+            std::cout << "Rendimento (Numero de pessoas que a receita serve.): ";
             std::cin >> rend;
 
             std::cin.ignore();
@@ -178,9 +195,59 @@ int main() {
             } catch (const std::invalid_argument& e) {
                 std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
             }
-            
         }
         else if (opcao == 6) {
+            if (!s.getUsuarioAtivo()) {
+                std::cout << "Faca login primeiro.\n";
+                continue;
+            }
+            else if(s.getAcessoUsuarioAtivo() != nivelAcesso::Chef ){
+                std::cout << "Você não tem o nivel de acesso para cadastrar templates!\n";
+                continue;
+            }
+            std::string titulo, descricao;
+            int rend, n;
+
+            std::cout << "Titulo: ";          
+            std::getline(std::cin, titulo);
+
+            std::cout << "Descricao: ";      
+            std::getline(std::cin, descricao);
+
+            std::cout << "Rendimento (Numero de pessoas que a receita serve.): ";
+            std::cin >> rend;
+
+            std::cin.ignore();
+            
+            try{
+                TemplateReceita* t = s.cadastrarTemplate(titulo, descricao, rend);
+
+                std::cout << "Quantos ingredientes? "; std::cin >> n;
+                std::cin.ignore();
+                for (int i = 0; i < n; ++i) {
+                    std::string nome, unidade, tipo;
+                    int quant;
+                    std::cout << "-- Ingrediente " << (i+1) << " --\n";
+                    std::cout << "Nome: ";
+                    std::getline(std::cin, nome);
+
+                    std::cout << "Quantidade: ";
+                    std::cin >> quant;
+
+                    std::cin.ignore();
+                    std::cout << "Unidade: ";
+                    std::getline(std::cin, unidade);
+
+                    std::cout << "Tipo: ";
+                    std::getline(std::cin, tipo);
+
+                    t->adicionarIngrediente(Ingrediente(nome, quant, unidade, tipo));
+                }
+            } catch (const std::invalid_argument& e) {
+                std::cout << "Erro ao cadastrar template: " << e.what() << "\n";
+            }
+        }
+        else if (opcao == 7) {
             const auto& receitas = s.getReceitas();
             if (receitas.empty()) {
                 std::cout << "Nenhuma receita.\n";
@@ -194,7 +261,21 @@ int main() {
                 }
             }
         }
-        else if (opcao == 7) {
+        else if (opcao == 8) {
+            const auto& templates = s.getTemplates();
+            if (templates.empty()) {
+                std::cout << "Nenhum template.\n";
+            } else {
+                std::cout << "\n=== Templates ===\n";
+                int i = 1;
+                for (const auto& [chave, temp] : templates) { //aqui eu estou assumindo que a chave == nome do template, podemos alterar caso necessario
+                    std::cout << i++ << ". " << chave
+                              << ", serve (" << temp.getRendimentoT() << ") pessoas.\n"
+                              << "Descricao: " << temp.getDescricao() << "\n";
+                }
+            }
+        }
+        else if (opcao == 9) {
             std::string titulo;
             std::cout << "Titulo a buscar: "; 
             std::getline(std::cin, titulo);
@@ -205,7 +286,7 @@ int main() {
             for (auto* r : res)
                 std::cout << "- " << r->getTitulo() << "\n";
         }
-        else if (opcao == 8) {
+        else if (opcao == 10) {
             int dif;
             std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): "; 
             std::cin >> dif;
@@ -218,7 +299,7 @@ int main() {
             for (auto* r : res)
                 std::cout << "- " << r->getTitulo() << "\n";
         }
-        else if (opcao == 9) {
+        else if (opcao == 11) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -240,7 +321,7 @@ int main() {
             else
                 std::cout << "Receita nao encontrada.\n";
         }
-        else if (opcao == 10) {
+        else if (opcao == 12) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -258,7 +339,7 @@ int main() {
                 std::cout << "Favoritada!\n";
             }
         }
-        else if (opcao == 11) {
+        else if (opcao == 13) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
                 continue;
@@ -272,7 +353,7 @@ int main() {
                     std::cout << "- " << r->getTitulo() << "\n";
             }
         }
-        else if (opcao == 12) {
+        else if (opcao == 14) {
             s.salvar();
             std::cout << "Salvo em data/\n";
         }

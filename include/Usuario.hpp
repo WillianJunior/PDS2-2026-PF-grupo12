@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-class Receita; //<- que porra é essa (com todo respeito)
+class Receita; 
 enum class nivelAcesso {Chef, Cozinheiro};
 
 /**
@@ -22,7 +22,8 @@ private:
 public:
     Usuario(const std::string& nome,
             const std::string& email,
-            const std::string& senha);
+            const std::string& senha,
+            const nivelAcesso& nAcesso);
 
     const std::string& getNome() const;
     const std::string& getEmail() const;

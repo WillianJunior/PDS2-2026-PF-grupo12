@@ -41,6 +41,14 @@ std::string Sistema::categoriaParaStr(Categoria c) {
     return "Outro";
 }
 
+std::string Sistema::nAcessoParaStr(nivelAcesso n) {
+    switch (n) {
+        case nivelAcesso::Chef:   return "Chef";
+        case nivelAcesso::Cozinheiro:   return "Cozinheiro";
+    }
+    return "Facil";
+}
+
 Dificuldade Sistema::strParaDificuldade(const std::string& s) {
     if (s == "Medio")   return Dificuldade::Medio;
     if (s == "Dificil") return Dificuldade::Dificil;
@@ -55,10 +63,16 @@ Categoria Sistema::strParaCategoria(const std::string& s) {
     return Categoria::Outro;
 }
 
+nivelAcesso Sistema::strParaNAcesso(const std::string& s) {
+    if (s == "Chef") return nivelAcesso::Chef;
+    if (s == "Cozinheiro") return nivelAcesso::Cozinheiro;
+}
+
 bool Sistema::cadastrarUsuario(const std::string& nome,
                                const std::string& email,
-                               const std::string& senha) {
-    if (nome.empty() || email.empty() || senha.empty()) return false;
+                               const std::string& senha,
+                               const nivelAcesso& nAcesso) {
+    if (nome.empty() || email.empty() || senha.empty() || nAcesso.empty()) return false;
     for (const auto& u : _usuarios) {
         if (u.getEmail() == email) return false;     // não permite duplicado
     }
@@ -89,7 +103,9 @@ Receita* Sistema::cadastrarReceita(const std::string& titulo, int tempoPreparo,
 }
 
 TemplateReceita* Sistema::cadastrarTemplate(const std::string& titulo, std::string descricao, int rendimentoT){
-     //aqui caberia implementar um sistema de chave de acesso. Por enquanto essa função permanece incompleta
+     _templates[titulo] = TemplateReceita(titulo, descricao, rendimentoT);
+     TemplateReceita* novo = &_templates[titulo];
+     return novo;
 }
 
 std::vector<Ingrediente> Sistema::getIngredientesTemplate(std::string chave) {

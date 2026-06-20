@@ -37,7 +37,8 @@ public:
 
     bool cadastrarUsuario(const std::string& nome,
                           const std::string& email,
-                          const std::string& senha);
+                          const std::string& senha,
+                          const nivelAcesso& nAcesso);
 
     bool login(const std::string& email, const std::string& senha);
     void logout();
@@ -65,6 +66,8 @@ public:
     const std::list<Receita>& getReceitas() const;
     std::list<Usuario>& getUsuarios();
     const std::list<Usuario>& getUsuarios() const;
+    std::map<std::string,TemplateReceita>& getTemplates();
+    const std::map<std::string,TemplateReceita>& getTemplates() const;
 
     void salvar();
     void carregar();

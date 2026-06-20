@@ -5,8 +5,9 @@
 
 Usuario::Usuario(const std::string& nome,
                  const std::string& email,
-                 const std::string& senha)
-    : _nome(nome), _email(email), _senha(senha) {
+                 const std::string& senha,
+                 const nivelAcesso& nAcesso)
+    : _nome(nome), _email(email), _senha(senha), _nivelAcesso(nAcesso) {
     if (nome.empty())
         throw std::invalid_argument("Usuario: nome nao pode ser vazio");
     if (email.find('@') == std::string::npos)

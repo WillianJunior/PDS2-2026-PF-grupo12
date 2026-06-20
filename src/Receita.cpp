@@ -43,8 +43,9 @@ void Receita::ordenarIngrediente(std::vector<Ingrediente>& ingredientes) {
 
 std::vector<Ingrediente> Receita::apropriarRendimento(const std::vector<Ingrediente>& ingredientesR, int rendimentoR, int rendimentoT){
 
-    double DrendT, DrendR = 0;
-    double razao = DrendT / DrendR; //ambos rendimentos são criados previamente de maneira que excecoes ja são lancadas caso os valores sejam invalidos (<1).
+    double DrendT = rendimentoT;
+    double DrendR = rendimentoR;
+    double razao = DrendR / DrendT; //ambos rendimentos são criados previamente de maneira que excecoes ja são lancadas caso os valores sejam invalidos (<1).
 
     for(auto ingrediente : ingredientesR){
         ingrediente.alterarQuantidade(razao);

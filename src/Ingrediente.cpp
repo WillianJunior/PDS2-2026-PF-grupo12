@@ -22,7 +22,7 @@ bool Ingrediente::validar() const {
 }
 
 void Ingrediente::alterarQuantidade(double razao){
-    this->_quantidade = this->_quantidade*razao; 
+    this->_quantidade = this->_quantidade * razao; 
 }
 
 const std::string& Ingrediente::getNome() const     { return _nome; }

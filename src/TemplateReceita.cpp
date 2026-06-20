@@ -1,9 +1,12 @@
 #include "../include/TemplateReceita.hpp"
+#include <stdexcept>
 
 TemplateReceita::TemplateReceita(const std::string& nome, const std::string& descricao, const int rendimentoT)
     : _nome(nome), _descricao(descricao), _rendimentoT(rendimentoT) {}
 
 void TemplateReceita::adicionarIngrediente(const Ingrediente& ingrediente) {
+    if (!ingrediente.validar())
+        throw std::invalid_argument("Template: ingrediente invalido");
     _ingredientes.push_back(ingrediente);
 }
 
