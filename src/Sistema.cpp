@@ -72,11 +72,11 @@ bool Sistema::cadastrarUsuario(const std::string& nome,
                                const std::string& email,
                                const std::string& senha,
                                const nivelAcesso& nAcesso) {
-    if (nome.empty() || email.empty() || senha.empty() || nAcesso.empty()) return false;
+    if (nome.empty() || email.empty() || senha.empty()) return false;
     for (const auto& u : _usuarios) {
         if (u.getEmail() == email) return false;     // não permite duplicado
     }
-    _usuarios.emplace_back(nome, email, senha);
+    _usuarios.emplace_back(nome, email, senha, nAcesso);
     return true;
 }
 
@@ -93,6 +93,8 @@ bool Sistema::login(const std::string& email, const std::string& senha) {
 void Sistema::logout() { _usuarioAtivo = nullptr; }
 
 Usuario* Sistema::getUsuarioAtivo() const { return _usuarioAtivo; }
+
+nivelAcesso Sistema::getAcessoUsuarioAtivo() const { return _usuarioAtivo->getAcesso(); }
 
 Receita* Sistema::cadastrarReceita(const std::string& titulo, int tempoPreparo,
                                    Dificuldade dificuldade, Categoria categoria, int rendimento) {

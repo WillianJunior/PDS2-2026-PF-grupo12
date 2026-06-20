@@ -41,8 +41,12 @@ public:
                           const nivelAcesso& nAcesso);
 
     bool login(const std::string& email, const std::string& senha);
+
     void logout();
+
     Usuario* getUsuarioAtivo() const;
+
+    nivelAcesso getAcessoUsuarioAtivo() const;
 
     Receita* cadastrarReceita(const std::string& titulo, int tempoPreparo,
                               Dificuldade dificuldade, Categoria categoria, int rendimento);
