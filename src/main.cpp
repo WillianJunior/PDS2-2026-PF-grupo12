@@ -63,13 +63,13 @@ int main() {
                     throw(std::invalid_argument("Tipo de acesso inválido"));
                 }
 
-                nivelAcesso nAcesso = (Acesso = 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef; 
+                nivelAcesso nAcesso = (Acesso == 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef; 
 
                 if (s.cadastrarUsuario(nome, email, senha, nAcesso))
                     std::cout << "Usuario cadastrado!\n";
                 else
                     std::cout << "Falha no cadastro.\n";
-            } catch(const std::invalid_argument e){
+            } catch(const std::invalid_argument& e){
                 std::cout << "Falha no cadastro: " << e.what() << std::endl;
             }
         }
@@ -186,14 +186,23 @@ int main() {
                 std::cout << "Insira o nome do template a ser usado: ";
                 std::getline(std::cin, chave_template);
 
+                // Pega os ingredientes do template (lanca out_of_range se o template nao existir)
+                std::vector<Ingrediente> ingsTemplate = s.getIngredientesTemplate(chave_template);
+                int rendTemplate = s.getRendimentoTemplate(chave_template);
 
-                r->atribuirIngredientes(s.getIngredientesTemplate(chave_template));
-                std::cout << "receita cadastrada\n";
+                // Ajusta as quantidades do template para o rendimento desejado da receita.
+                // apropriarRendimento RETORNA o vetor ajustado (nao altera no lugar), por isso
+                // usamos o retorno em atribuirIngredientes.
+                r->atribuirIngredientes(
+                    r->apropriarRendimento(ingsTemplate, r->getRendimento(), rendTemplate)
+                );
 
-                r->apropriarRendimento(r->getIngredientes(), r->getRendimento(), s.getRendimentoTemplate(chave_template));
+                std::cout << "Receita cadastrada via template!\n";
 
             } catch (const std::invalid_argument& e) {
                 std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
+            } catch (const std::out_of_range&) {
+                std::cout << "Template nao encontrado.\n";
             }
         }
         else if (opcao == 6) {

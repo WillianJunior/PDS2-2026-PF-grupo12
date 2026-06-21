@@ -13,7 +13,8 @@ TEST_CASE("Criar usuario") {
     Usuario u(
         nome,
         email,
-        senha
+        senha,
+        nivelAcesso::Cozinheiro
     );
 
     CHECK(u.getNome() == "djavan");
@@ -30,7 +31,8 @@ TEST_CASE("Autenticacao") {
     Usuario u(
         nome,
         email,
-        senha
+        senha,
+        nivelAcesso::Cozinheiro
     );
 
     CHECK(u.autenticar("abc"));
@@ -47,14 +49,15 @@ TEST_CASE("Receitas proprias") {
     Usuario u(
         nome,
         email,
-        senha
+        senha,
+        nivelAcesso::Cozinheiro
     );
 
     Receita r(
         "Bolo",
         20,
         Dificuldade::Facil,
-        Categoria::Doce
+        Categoria::Doce, 1
     );
 
     u.adicionarReceitaPropria(&r);
@@ -71,14 +74,15 @@ TEST_CASE("Favoritas") {
     Usuario u(
         nome,
         email,
-        senha
+        senha,
+        nivelAcesso::Cozinheiro
     );
 
     Receita r(
         "Pizza",
         40,
         Dificuldade::Medio,
-        Categoria::Salgado
+        Categoria::Salgado, 1
     );
 
     u.adicionarFavorita(&r);
@@ -94,7 +98,7 @@ TEST_CASE("Usuario com nome vazio lanca excecao") {
     std::string senha = "123";
  
     CHECK_THROWS_AS(
-        Usuario(nome, email, senha),
+        Usuario(nome, email, senha, nivelAcesso::Cozinheiro),
         std::invalid_argument
     );
 }
@@ -105,7 +109,7 @@ TEST_CASE("Usuario com email invalido (sem @) lanca excecao") {
     std::string senha = "123";
  
     CHECK_THROWS_AS(
-        Usuario(nome, email, senha),
+        Usuario(nome, email, senha, nivelAcesso::Cozinheiro),
         std::invalid_argument
     );
 }
@@ -115,11 +119,11 @@ TEST_CASE("Usuario valido nao lanca excecao") {
     std::string email = "joao@email.com";
     std::string senha = "123";
  
-    CHECK_NOTHROW(Usuario(nome, email, senha));
+    CHECK_NOTHROW(Usuario(nome, email, senha, nivelAcesso::Cozinheiro));
 }
  
 TEST_CASE("AlterarSenha com nova senha vazia lanca excecao") {
-    Usuario u("Felipe", "felipe@email.com", "senha123");
+    Usuario u("Felipe", "felipe@email.com", "senha123", nivelAcesso::Cozinheiro);
  
     CHECK_THROWS_AS(
         u.alterarSenha("senha123", ""),
@@ -128,7 +132,7 @@ TEST_CASE("AlterarSenha com nova senha vazia lanca excecao") {
 }
  
 TEST_CASE("AlterarSenha com senha atual incorreta retorna false, nao lanca") {
-    Usuario u("Felipe", "felipe@email.com", "senha123");
+    Usuario u("Felipe", "felipe@email.com", "senha123", nivelAcesso::Cozinheiro);
  
     bool resultado = true;
     CHECK_NOTHROW(resultado = u.alterarSenha("senhaErrada", "novaSenha"));
@@ -136,11 +140,10 @@ TEST_CASE("AlterarSenha com senha atual incorreta retorna false, nao lanca") {
 }
  
 TEST_CASE("AlterarSenha valida funciona e nao lanca") {
-    Usuario u("Felipe", "felipe@email.com", "senha123");
+    Usuario u("Felipe", "felipe@email.com", "senha123", nivelAcesso::Cozinheiro);
  
     bool resultado = false;
     CHECK_NOTHROW(resultado = u.alterarSenha("senha123", "novaSenha"));
     CHECK(resultado);
     CHECK(u.autenticar("novaSenha"));
 }
-

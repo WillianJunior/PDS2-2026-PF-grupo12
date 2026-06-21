@@ -66,6 +66,7 @@ Categoria Sistema::strParaCategoria(const std::string& s) {
 nivelAcesso Sistema::strParaNAcesso(const std::string& s) {
     if (s == "Chef") return nivelAcesso::Chef;
     if (s == "Cozinheiro") return nivelAcesso::Cozinheiro;
+    return nivelAcesso::Cozinheiro;
 }
 
 bool Sistema::cadastrarUsuario(const std::string& nome,
@@ -105,17 +106,16 @@ Receita* Sistema::cadastrarReceita(const std::string& titulo, int tempoPreparo,
 }
 
 TemplateReceita* Sistema::cadastrarTemplate(const std::string& titulo, std::string descricao, int rendimentoT){
-     _templates[titulo] = TemplateReceita(titulo, descricao, rendimentoT);
-     TemplateReceita* novo = &_templates[titulo];
+     _templates.insert_or_assign(titulo, TemplateReceita(titulo, descricao, rendimentoT));
+     TemplateReceita* novo = &_templates.at(titulo);
      return novo;
 }
-
 std::vector<Ingrediente> Sistema::getIngredientesTemplate(std::string chave) {
-    return _templates[chave].getIngredientesT();
+    return _templates.at(chave).getIngredientesT();
 }
 
 int Sistema::getRendimentoTemplate(std::string chave) {
-    return _templates[chave].getRendimentoT();
+    return _templates.at(chave).getRendimentoT();
 }
 
 bool Sistema::removerReceita(const std::string& titulo) {
@@ -174,11 +174,14 @@ bool Sistema::avaliar(const std::string& tituloReceita, int nota,
     return false;
 }
 
-std::list<Receita>&       Sistema::getReceitas()       { return _receitas; }
+std::list<Receita>& Sistema::getReceitas()       { return _receitas; }
 const std::list<Receita>& Sistema::getReceitas() const { return _receitas; }
 
-std::list<Usuario>&       Sistema::getUsuarios()       { return _usuarios; }
+std::list<Usuario>& Sistema::getUsuarios()       { return _usuarios; }
 const std::list<Usuario>& Sistema::getUsuarios() const { return _usuarios; }
+
+std::map<std::string,TemplateReceita>& Sistema::getTemplates()       { return _templates; }
+const std::map<std::string,TemplateReceita>& Sistema::getTemplates() const { return _templates; }
 
 // ───────────────────────────────────────────────────────────
 // Persistência em CSV (data/usuarios.csv e data/receitas.csv)
@@ -204,14 +207,15 @@ void Sistema::salvar() {
         return;
     }
     for (const auto& u : _usuarios) {
-        fu << u.getNome() << "," << u.getEmail() << "," << u.getSenha() << "\n";
+        fu << u.getNome() << "," << u.getEmail() << "," << u.getSenha() << "," << nAcessoParaStr(u.getAcesso()) << "\n";
         //atenção aqui! coloquei texto simples na senha, mas sugiro colocarmos  hash no futuro - Bernardo.
         //mas resolve problema de senha vazia passando no login que estava tendo. Olhar em carregar() tambem.
+        //coloquei nivel de acesso pra persistir.
     }
 
     // --- receitas ---
     std::ofstream fr("data/receitas.csv");
-    if (!fr) {                                          // <-- mesmo guard aqui
+    if (!fr) {                                          
         std::cerr << "Erro: nao foi possivel abrir data/receitas.csv para escrita\n";
         return;
     }
@@ -227,6 +231,7 @@ void Sistema::salvar() {
 
         fr << r.getTitulo()                          << ","
            << r.getTempoPreparo()                    << ","
+           << r.getRendimento()                      << ","
            << dificuldadeParaStr(r.getDificuldade()) << ","
            << categoriaParaStr(r.getCategoria())     << ","
            << r.getInstrucoes()                      << ","
@@ -244,13 +249,15 @@ void Sistema::carregar() {
     std::string linha;
     while (std::getline(fu, linha)) {
         std::stringstream ss(linha);
-        std::string nome, email, senha;
+        std::string nome, email, senha, sacesso;
         std::getline(ss, nome,  ',');
         std::getline(ss, email, ',');
         std::getline(ss, senha, ',');
         //aqui coloquei pra carregar a senha, nao rolava no login pois nao salvava em nenhum lugar (precisa ser mais seguro na vida real)
+        std::getline(ss, sacesso, ',');
+        
         if (!nome.empty()) {
-            _usuarios.emplace_back(nome, email, senha);
+            _usuarios.emplace_back(nome, email, senha, strParaNAcesso(sacesso));
         }
     }
 
@@ -259,9 +266,10 @@ void Sistema::carregar() {
     while (std::getline(fr, linha)) {
         try {
             std::stringstream ss(linha);
-            std::string titulo, stempo, sdif, scat, instrucoes, ings;
+            std::string titulo, stempo, srend, sdif, scat, instrucoes, ings;
             std::getline(ss, titulo,     ',');
             std::getline(ss, stempo,     ',');
+            std::getline(ss, srend,      ',');
             std::getline(ss, sdif,       ',');
             std::getline(ss, scat,       ',');
             std::getline(ss, instrucoes, ',');
@@ -271,7 +279,7 @@ void Sistema::carregar() {
 
             _receitas.emplace_back(titulo, std::stoi(stempo),
                                    strParaDificuldade(sdif),
-                                   strParaCategoria(scat));
+                                   strParaCategoria(scat), std::stoi(srend));
             Receita& r = _receitas.back();
             r.definirInstrucoes(instrucoes);
 

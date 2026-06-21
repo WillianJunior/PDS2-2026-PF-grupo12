@@ -6,7 +6,7 @@
 
 TEST_CASE("Criacao de avaliacao") {
 
-    Usuario u("Pedro", "pedro@email.com", "123");
+    Usuario u("Pedro", "pedro@email.com", "123", nivelAcesso::Cozinheiro);
 
     Avaliacao a(&u, 5, "Muito boa");
 
@@ -17,7 +17,7 @@ TEST_CASE("Criacao de avaliacao") {
 
 TEST_CASE("Outra avaliacao") {
 
-    Usuario u("kafka", "kafka@email.com", "123");
+    Usuario u("kafka", "kafka@email.com", "123", nivelAcesso::Cozinheiro);
 
     
     Avaliacao a(&u, 2, "Ruim");
@@ -36,7 +36,7 @@ TEST_CASE("Avaliacao com autor nulo lanca excecao") {
 }
  
 TEST_CASE("Avaliacao com nota fora do range eh ajustada, nao lanca") {
-    Usuario u("Carlos", "carlos@email.com", "123");
+    Usuario u("Carlos", "carlos@email.com", "123", nivelAcesso::Cozinheiro);
  
     // nota e ajustada via std::clamp, nao deve lancar excecao
     CHECK_NOTHROW(Avaliacao(&u, 10, "Excelente"));
@@ -50,6 +50,6 @@ TEST_CASE("Avaliacao com nota fora do range eh ajustada, nao lanca") {
 }
  
 TEST_CASE("Avaliacao valida nao lanca excecao") {
-    Usuario u("Maria", "maria@email.com", "123");
+    Usuario u("Maria", "maria@email.com", "123", nivelAcesso::Cozinheiro);
     CHECK_NOTHROW(Avaliacao(&u, 4, "Boa"));
 }

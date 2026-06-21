@@ -11,7 +11,7 @@ TEST_CASE("Criar receita") {
         "Bolo de cenoura",
         60,
         Dificuldade::Facil,
-        Categoria::Doce
+        Categoria::Doce, 1
     );
 
     CHECK(
@@ -25,7 +25,7 @@ TEST_CASE("Adicionar ingrediente") {
         "Pizza",
         40,
         Dificuldade::Medio,
-        Categoria::Salgado
+        Categoria::Salgado, 1
     );
 
     Ingrediente i(
@@ -46,7 +46,7 @@ TEST_CASE("Definir instrucoes") {
         "Pao",
         30,
         Dificuldade::Facil,
-        Categoria::Outro
+        Categoria::Outro, 1
     );
 
     r.definirInstrucoes(
@@ -62,10 +62,10 @@ TEST_CASE("Media de notas") {
         "Torta",
         50,
         Dificuldade::Medio,
-        Categoria::Doce
+        Categoria::Doce, 1
     );
 
-    Usuario u("Joana", "joana@email.com", "123");
+    Usuario u("Joana", "joana@email.com", "123", nivelAcesso::Cozinheiro);
 
     Avaliacao a1(
         &u,
@@ -94,26 +94,26 @@ TEST_CASE("Media de notas") {
 
 TEST_CASE("Receita com titulo vazio lanca excecao") {
     CHECK_THROWS_AS(
-        Receita("", 30, Dificuldade::Facil, Categoria::Doce),
+        Receita("", 30, Dificuldade::Facil, Categoria::Doce, 1),
         std::invalid_argument
     );
 }
  
 TEST_CASE("Receita com tempo negativo lanca excecao") {
     CHECK_THROWS_AS(
-        Receita("Bolo", -10, Dificuldade::Facil, Categoria::Doce),
+        Receita("Bolo", -10, Dificuldade::Facil, Categoria::Doce, 1),
         std::invalid_argument
     );
 }
  
 TEST_CASE("Receita valida nao lanca excecao") {
     CHECK_NOTHROW(
-        Receita("Bolo", 30, Dificuldade::Facil, Categoria::Doce)
+        Receita("Bolo", 30, Dificuldade::Facil, Categoria::Doce, 1)
     );
 }
  
 TEST_CASE("Adicionar ingrediente invalido lanca excecao") {
-    Receita r("Sopa", 20, Dificuldade::Facil, Categoria::Salgado);
+    Receita r("Sopa", 20, Dificuldade::Facil, Categoria::Salgado, 1);
  
     // Ingrediente nao pode ser construido invalido (o proprio construtor
     // ja lanca), entao testamos que a tentativa de cria-lo falha

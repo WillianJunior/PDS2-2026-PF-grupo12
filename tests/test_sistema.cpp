@@ -5,25 +5,25 @@
 
 TEST_CASE("Sistema: cadastrar usuario") {
     Sistema s;
-    CHECK(s.cadastrarUsuario("david", "davidbowie@gmail.com", "123"));
+    CHECK(s.cadastrarUsuario("david", "davidbowie@gmail.com", "123", nivelAcesso::Cozinheiro));
 }
 
 TEST_CASE("Sistema: cadastrar usuario recusa email duplicado") {
     Sistema s;
-    CHECK(s.cadastrarUsuario("a", "x@x.com", "1"));
-    CHECK_FALSE(s.cadastrarUsuario("b", "x@x.com", "2"));
+    CHECK(s.cadastrarUsuario("a", "x@x.com", "1", nivelAcesso::Cozinheiro));
+    CHECK_FALSE(s.cadastrarUsuario("b", "x@x.com", "2", nivelAcesso::Cozinheiro));
 }
 
 TEST_CASE("Sistema: cadastrar usuario recusa campos vazios") {
     Sistema s;
-    CHECK_FALSE(s.cadastrarUsuario("", "x@x.com", "1"));
-    CHECK_FALSE(s.cadastrarUsuario("a", "",       "1"));
-    CHECK_FALSE(s.cadastrarUsuario("a", "x@x.com", ""));
+    CHECK_FALSE(s.cadastrarUsuario("", "x@x.com", "1", nivelAcesso::Cozinheiro));
+    CHECK_FALSE(s.cadastrarUsuario("a", "",       "1", nivelAcesso::Cozinheiro));
+    CHECK_FALSE(s.cadastrarUsuario("a", "x@x.com", "", nivelAcesso::Cozinheiro));
 }
 
 TEST_CASE("Sistema: login bem sucedido") {
     Sistema s;
-    s.cadastrarUsuario("ziggy", "ziggystardust@email.com", "abc");
+    s.cadastrarUsuario("ziggy", "ziggystardust@email.com", "abc", nivelAcesso::Cozinheiro);
     CHECK(s.login("ziggystardust@email.com", "abc"));
     CHECK(s.getUsuarioAtivo() != nullptr);
     CHECK(s.getUsuarioAtivo()->getNome() == "ziggy");
@@ -31,7 +31,7 @@ TEST_CASE("Sistema: login bem sucedido") {
 
 TEST_CASE("Sistema: login com senha errada falha") {
     Sistema s;
-    s.cadastrarUsuario("ziggy", "z@z.com", "abc");
+    s.cadastrarUsuario("ziggy", "z@z.com", "abc", nivelAcesso::Cozinheiro);
     CHECK_FALSE(s.login("z@z.com", "errada"));
     CHECK(s.getUsuarioAtivo() == nullptr);
 }
@@ -43,7 +43,7 @@ TEST_CASE("Sistema: login com email inexistente falha") {
 
 TEST_CASE("Sistema: logout") {
     Sistema s;
-    s.cadastrarUsuario("Joao", "joaoguimaraesrosa@email.com", "123");
+    s.cadastrarUsuario("Joao", "joaoguimaraesrosa@email.com", "123", nivelAcesso::Cozinheiro);
     s.login("joaoguimaraesrosa@email.com", "123");
     s.logout();
     CHECK(s.getUsuarioAtivo() == nullptr);
@@ -52,7 +52,7 @@ TEST_CASE("Sistema: logout") {
 TEST_CASE("Sistema: cadastrar receita") {
     Sistema s;
     Receita* r = s.cadastrarReceita("Bolo de ninho", 60,
-                                    Dificuldade::Facil, Categoria::Doce);
+                                    Dificuldade::Facil, Categoria::Doce, 1);
     CHECK(r != nullptr);
     CHECK(s.getReceitas().size() == 1);
     CHECK(&s.getReceitas().front() == r);
@@ -60,10 +60,10 @@ TEST_CASE("Sistema: cadastrar receita") {
 
 TEST_CASE("Sistema: cadastrar receita vincula ao usuario logado") {
     Sistema s;
-    s.cadastrarUsuario("a", "a@a", "1");
+    s.cadastrarUsuario("a", "a@a", "1", nivelAcesso::Cozinheiro);
     s.login("a@a", "1");
     Receita* r = s.cadastrarReceita("Pizza", 30,
-                                    Dificuldade::Medio, Categoria::Salgado);
+                                    Dificuldade::Medio, Categoria::Salgado, 1);
     CHECK(s.getUsuarioAtivo()->getReceitasProprias().size() == 1);
     CHECK(s.getUsuarioAtivo()->getReceitasProprias()[0] == r);
 }
@@ -71,9 +71,9 @@ TEST_CASE("Sistema: cadastrar receita vincula ao usuario logado") {
 TEST_CASE("Sistema: buscar receita por substring case-insensitive") {
     Sistema s;
     s.cadastrarReceita("Pizza Margherita", 30,
-                       Dificuldade::Medio, Categoria::Salgado);
+                       Dificuldade::Medio, Categoria::Salgado, 1);
     s.cadastrarReceita("Bolo de cenoura", 60,
-                       Dificuldade::Facil, Categoria::Doce);
+                       Dificuldade::Facil, Categoria::Doce, 1);
 
     auto r1 = s.buscarPorTitulo("pizza");
     CHECK(r1.size() == 1);
@@ -87,8 +87,8 @@ TEST_CASE("Sistema: buscar receita por substring case-insensitive") {
 
 TEST_CASE("Sistema: filtrar por dificuldade") {
     Sistema s;
-    s.cadastrarReceita("Bolo",    20, Dificuldade::Facil,   Categoria::Doce);
-    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado);
+    s.cadastrarReceita("Bolo",    20, Dificuldade::Facil,   Categoria::Doce, 1);
+    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado, 1);
     auto faceis = s.filtrarPorDificuldade(Dificuldade::Facil);
     CHECK(faceis.size() == 1);
     CHECK(faceis[0]->getTitulo() == "Bolo");
@@ -96,7 +96,7 @@ TEST_CASE("Sistema: filtrar por dificuldade") {
 
 TEST_CASE("Sistema: remover receita existente") {
     Sistema s;
-    s.cadastrarReceita("Bolo", 20, Dificuldade::Facil, Categoria::Doce);
+    s.cadastrarReceita("Bolo", 20, Dificuldade::Facil, Categoria::Doce, 1);
     CHECK(s.removerReceita("Bolo"));
     CHECK(s.getReceitas().empty());
 }
@@ -108,16 +108,16 @@ TEST_CASE("Sistema: remover receita inexistente retorna false") {
 
 TEST_CASE("Sistema: avaliar exige usuario logado") {
     Sistema s;
-    s.cadastrarReceita("Bolo", 20, Dificuldade::Facil, Categoria::Doce);
+    s.cadastrarReceita("Bolo", 20, Dificuldade::Facil, Categoria::Doce, 1);
     CHECK_FALSE(s.avaliar("Bolo", 5, "otimo"));   // sem login
 }
 
 TEST_CASE("Sistema: avaliar com login e filtrar por nota minima") {
     Sistema s;
-    s.cadastrarUsuario("a", "a@a", "1");
+    s.cadastrarUsuario("a", "a@a", "1", nivelAcesso::Cozinheiro);
     s.login("a@a", "1");
-    s.cadastrarReceita("Bolo",    20, Dificuldade::Facil,   Categoria::Doce);
-    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado);
+    s.cadastrarReceita("Bolo",    20, Dificuldade::Facil,   Categoria::Doce, 1);
+    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado, 1);
 
     CHECK(s.avaliar("Bolo",    5, "perfeito"));
     CHECK(s.avaliar("Lasanha", 2, "ruim"));
@@ -129,7 +129,7 @@ TEST_CASE("Sistema: avaliar com login e filtrar por nota minima") {
 
 TEST_CASE("Sistema: avaliar receita inexistente retorna false") {
     Sistema s;
-    s.cadastrarUsuario("a", "a@a", "1");
+    s.cadastrarUsuario("a", "a@a", "1", nivelAcesso::Cozinheiro);
     s.login("a@a", "1");
     CHECK_FALSE(s.avaliar("nao existe", 5, "x"));
 }
@@ -137,10 +137,10 @@ TEST_CASE("Sistema: avaliar receita inexistente retorna false") {
 TEST_CASE("Sistema: ponteiros sobrevivem a multiplas insercoes (regressao)") {
     // Regressao: garante que list nao invalida ponteiros.
     Sistema s;
-    Receita* primeira = s.cadastrarReceita("A", 10, Dificuldade::Facil, Categoria::Doce);
+    Receita* primeira = s.cadastrarReceita("A", 10, Dificuldade::Facil, Categoria::Doce, 1);
     for (int i = 0; i < 50; ++i) {
         std::string t = "R" + std::to_string(i);
-        s.cadastrarReceita(t, 10, Dificuldade::Facil, Categoria::Doce);
+        s.cadastrarReceita(t, 10, Dificuldade::Facil, Categoria::Doce, 1);
     }
     // Se fosse vector com realocacao, isto seria UB. Com list, e seguro.
     CHECK(primeira->getTitulo() == "A");
@@ -172,7 +172,7 @@ static std::string lerArquivo(const std::string& path) {
 
 TEST_CASE("Persistencia: salvar gera arquivo de usuarios") {
     Sistema s;
-    s.cadastrarUsuario("Ana", "ana@email.com", "123");
+    s.cadastrarUsuario("Ana", "ana@email.com", "123", nivelAcesso::Cozinheiro);
     s.salvar();
 
     std::string conteudo = lerArquivo("data/usuarios.csv");
@@ -182,7 +182,7 @@ TEST_CASE("Persistencia: salvar gera arquivo de usuarios") {
 
 TEST_CASE("Persistencia: salvar gera arquivo de receitas com titulo, dificuldade, categoria") {
     Sistema s;
-    s.cadastrarReceita("Bolo de cenoura", 40, Dificuldade::Facil, Categoria::Doce);
+    s.cadastrarReceita("Bolo de cenoura", 40, Dificuldade::Facil, Categoria::Doce, 1);
     s.salvar();
 
     std::string conteudo = lerArquivo("data/receitas.csv");
@@ -194,7 +194,7 @@ TEST_CASE("Persistencia: salvar gera arquivo de receitas com titulo, dificuldade
 TEST_CASE("Persistencia: salvar persiste ingredientes") {
     Sistema s;
     Receita* r = s.cadastrarReceita("Omelete", 10,
-                                    Dificuldade::Facil, Categoria::Salgado);
+                                    Dificuldade::Facil, Categoria::Salgado, 1);
     r->adicionarIngrediente(Ingrediente("Ovo", 2, "un", "Proteina"));
     s.salvar();
 
@@ -204,8 +204,8 @@ TEST_CASE("Persistencia: salvar persiste ingredientes") {
 
 TEST_CASE("Persistencia: salvar persiste multiplas receitas") {
     Sistema s;
-    s.cadastrarReceita("Pizza",   30, Dificuldade::Medio,   Categoria::Salgado);
-    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado);
+    s.cadastrarReceita("Pizza",   30, Dificuldade::Medio,   Categoria::Salgado, 1);
+    s.cadastrarReceita("Lasanha", 90, Dificuldade::Dificil, Categoria::Salgado, 1);
     s.salvar();
 
     std::string conteudo = lerArquivo("data/receitas.csv");
@@ -232,7 +232,7 @@ TEST_CASE("Persistencia: carregar recupera usuarios") {
 TEST_CASE("Persistencia: carregar recupera receita") {
     escreverCSV("data/usuarios.csv", "",
                 "data/receitas.csv",
-                "Frango grelhado,30,Medio,Salgado,Grelhe o frango,\n");
+                "Frango grelhado,30,1,Medio,Salgado,Grelhe o frango,\n");
 
     Sistema s;
     s.carregar();
@@ -247,7 +247,7 @@ TEST_CASE("Persistencia: carregar recupera receita") {
 TEST_CASE("Persistencia: carregar recupera ingredientes") {
     escreverCSV("data/usuarios.csv", "",
                 "data/receitas.csv",
-                "Omelete,10,Facil,Salgado,Bata os ovos,Ovo|2|un|Proteina\n");
+                "Omelete,10,1,Facil,Salgado,Bata os ovos,Ovo|2|un|Proteina\n");
 
     Sistema s;
     s.carregar();
@@ -262,7 +262,7 @@ TEST_CASE("Persistencia: carregar recupera ingredientes") {
 
 TEST_CASE("Persistencia: carregar nao duplica em chamadas consecutivas") {
     escreverCSV("data/usuarios.csv", "Maria,maria@email.com\n",
-                "data/receitas.csv", "Sopa,20,Facil,Salgado,Ferva tudo,\n");
+                "data/receitas.csv", "Sopa,20,1,Facil,Salgado,Ferva tudo,\n");
 
     Sistema s;
     s.carregar();
@@ -274,9 +274,9 @@ TEST_CASE("Persistencia: carregar nao duplica em chamadas consecutivas") {
 
 TEST_CASE("Persistencia: salvar + carregar preserva dados (round-trip)") {
     Sistema original;
-    original.cadastrarUsuario("Lucas", "lucas@email.com", "abc");
+    original.cadastrarUsuario("Lucas", "lucas@email.com", "abc", nivelAcesso::Cozinheiro);
     Receita* r = original.cadastrarReceita("Bolo de fuba", 50,
-                                           Dificuldade::Facil, Categoria::Doce);
+                                           Dificuldade::Facil, Categoria::Doce, 1);
     r->adicionarIngrediente(Ingrediente("Fuba", 300.0, "g", "Grao"));
     r->definirInstrucoes("Misture tudo e asse.");
     original.salvar();

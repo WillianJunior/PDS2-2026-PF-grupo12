@@ -47,9 +47,11 @@ std::vector<Ingrediente> Receita::apropriarRendimento(const std::vector<Ingredie
     double DrendR = rendimentoR;
     double razao = DrendR / DrendT; //ambos rendimentos são criados previamente de maneira que excecoes ja são lancadas caso os valores sejam invalidos (<1).
 
-    for(auto ingrediente : ingredientesR){
+    std::vector<Ingrediente> ajustados = ingredientesR;
+    for(auto& ingrediente : ajustados){
         ingrediente.alterarQuantidade(razao);
     }
+    return ajustados;
 }
 
 double Receita::calcularMediaNotas() const {

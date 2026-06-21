@@ -5,7 +5,7 @@ TEST_CASE("Criar template") {
 
     TemplateReceita t(
         "Bolo Base",
-        "Template para bolos"
+        "Template para bolos", 1
     );
 
     CHECK(t.getIngredientesT().size() == 0);
@@ -15,7 +15,7 @@ TEST_CASE("Adicionar ingrediente") {
 
     TemplateReceita t(
         "Pizza",
-        "Template pizza"
+        "Template pizza", 1
     );
 
     Ingrediente i(
