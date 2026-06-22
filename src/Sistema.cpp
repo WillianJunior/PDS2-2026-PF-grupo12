@@ -183,6 +183,39 @@ bool Sistema::avaliar(const std::string& tituloReceita, int nota,
     return false;
 }
 
+std::vector<Receita*> Sistema::sugerirReceitas(){
+
+    std::vector<Receita*> SujestReceita;
+    if(getUsuarioAtivo()->getIngredientesDisp().empty()){
+        throw std::invalid_argument("Nenhum ingrediente disponivel foi adicionado pelo usuário!");
+    }
+
+    for (auto& receita : this->_receitas) {
+
+        bool podeFazer = true;
+
+        for (const auto& ingrediente : receita.getIngredientes())
+        {
+            if (std::find(
+                    getUsuarioAtivo()->getIngredientesDisp().begin(),
+                    getUsuarioAtivo()->getIngredientesDisp().end(),
+                    ingrediente)
+                == getUsuarioAtivo()->getIngredientesDisp().end())
+            {
+                podeFazer = false;
+                break;
+            }
+        }
+
+        if (podeFazer)
+        {
+            SujestReceita.push_back(&receita);
+        }
+    }
+
+    return SujestReceita;
+}
+
 std::list<Receita>& Sistema::getReceitas()       { return _receitas; }
 const std::list<Receita>& Sistema::getReceitas() const { return _receitas; }
 

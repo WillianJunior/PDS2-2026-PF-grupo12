@@ -69,6 +69,8 @@ public:
     bool avaliar(const std::string& tituloReceita, int nota,
                  const std::string& comentario);
 
+    std::vector<Receita*> sugerirReceitas();
+
     std::list<Receita>& getReceitas();
     const std::list<Receita>& getReceitas() const;
     std::list<std::unique_ptr<Usuario>>& getUsuarios();

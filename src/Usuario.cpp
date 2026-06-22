@@ -17,6 +17,9 @@ const std::string& Usuario::getNome() const  { return _nome; }
 const std::string& Usuario::getEmail() const { return _email; }
 const std::string& Usuario::getSenha() const { return _senha; }
 
+const std::vector<Ingrediente>& Usuario::getIngredientesDisp() const{
+    return _IngredientesDisp;
+}
 
 bool Usuario::autenticar(const std::string& senha) const {
     return _senha == senha;
@@ -39,6 +42,10 @@ void Usuario::removerReceitaPropria(Receita* r) {
     _receitasProprias.erase(
         std::remove(_receitasProprias.begin(), _receitasProprias.end(), r),
         _receitasProprias.end());
+}
+
+void Usuario::adicionarIngredienteDisponivel(const Ingrediente& i){
+    _IngredientesDisp.push_back(i);
 }
 
 const std::vector<Receita*>& Usuario::getReceitasProprias() const {

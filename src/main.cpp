@@ -51,7 +51,6 @@ void limparTela() {
     system("clear");
 }
 
-//main serve como um loop de opções. podemos incrementar ela na proxima semana
 int main() {
     Sistema s;
     s.carregar();
@@ -451,6 +450,77 @@ int main() {
             s.salvar();
             std::cout << "Salvo em data/\n";
         }
+        else if (opcao == 25) /*opcao de refatoramento, coloquei o numero como placeholder, vamos decidir isso dps*/ {
+            int new_rend;
+            std::string titulo;
+            bool encontrei = false;
+
+            std::cout << "Insira o titulo da receita que deseja modificar: ";
+            std::getline(std::cin, titulo);
+
+            std::cout << "Insira o valor do novo rendimento: ";
+            std::cin >> new_rend ; 
+            std::cin.ignore();
+
+            for(auto& r : s.getReceitas()){
+                if(r.getTitulo() == titulo){
+                    r.apropriarRendimento(r.getIngredientes(), r.getRendimento(), new_rend);
+                    std::cout << "Rendimento apropriado! Os ingredientes foram refatorados.\n";
+                    encontrei = true;
+                    break;
+                }
+            }
+            if(!encontrei){
+                std::cout << "Nenhuma receita correspondente encontrada! Verifique se o nome está correto.\n";
+            }
+        }
+        else if(opcao == 26)/*opcao de adicionar ingredientes disponiveis em usuario, alterar numero de escolha*/{
+
+            int n;
+            std::cout << "Quantos ingredientes? "; std::cin >> n;
+            std::cin.ignore();
+
+            for (int i = 0; i < n; ++i) {
+                std::string nome, unidade, tipo;
+                int quant;
+                std::cout << "-- Ingrediente " << (i+1) << " --\n";
+                std::cout << "Nome: ";
+                std::getline(std::cin, nome);
+
+                std::cout << "Quantidade: ";
+                std::cin >> quant;
+
+                std::cin.ignore();
+                std::cout << "Unidade: ";
+                std::getline(std::cin, unidade);
+
+                std::cout << "Tipo: ";
+                std::getline(std::cin, tipo);
+
+                s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente(nome, quant, unidade, tipo));
+            }    
+        }
+
+        else if(opcao == 27) /*opcao de sugestao de receitas/templates com base em ingredientes*/ {
+            try{
+                std::vector<Receita*> sugestoes = s.sugerirReceitas();
+                int i = 1;
+
+                if(sugestoes.empty()){
+                    std::cout << "Nenhuma receita pode ser feita com os ingredientes disponiveis do usuário.\n" ;
+                }
+
+                std::cout << "\n=== Receitas Disponiveis ===\n" ;
+                for (const auto& r : sugestoes) {
+                    std::cout << i++ << ". " << r->getTitulo()
+                              << " (" << r->getTempoPreparo() << " min, nota "
+                              << r->calcularMediaNotas() << ")\n";
+                } 
+            } catch (const std::invalid_argument& e){
+                std::cout << "Erro ao procurar receitas: " << e.what() << std::endl;
+            }
+        }
+
         else if (opcao == 0) {
             s.salvar();
             std::cout << "Salvo. Ate logo!\n";
