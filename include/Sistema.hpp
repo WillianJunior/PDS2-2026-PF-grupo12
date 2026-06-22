@@ -4,6 +4,9 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <memory>
+
+
 #include "Receita.hpp"
 #include "Usuario.hpp"
 #include "TemplateReceita.hpp"
@@ -20,7 +23,7 @@
  */
 class Sistema {
 private:
-    std::list<Usuario> _usuarios;
+    std::list<std::unique_ptr<Usuario>> _usuarios;
     std::list<Receita> _receitas;
     std::map<std::string, TemplateReceita> _templates;
     Usuario* _usuarioAtivo = nullptr;
@@ -68,8 +71,8 @@ public:
 
     std::list<Receita>& getReceitas();
     const std::list<Receita>& getReceitas() const;
-    std::list<Usuario>& getUsuarios();
-    const std::list<Usuario>& getUsuarios() const;
+    std::list<std::unique_ptr<Usuario>>& getUsuarios();
+    const std::list<std::unique_ptr<Usuario>>& getUsuarios() const;
     std::map<std::string,TemplateReceita>& getTemplates();
     const std::map<std::string,TemplateReceita>& getTemplates() const;
 

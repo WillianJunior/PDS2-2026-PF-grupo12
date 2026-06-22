@@ -210,9 +210,11 @@ int main() {
                 std::cout << "Faca login primeiro.\n";
                 continue;
             }
-            else if(s.getAcessoUsuarioAtivo() != nivelAcesso::Chef ){
+            else if(!s.getUsuarioAtivo()->podeCadastrarTemplate()){
                 std::cout << "Você não tem o nivel de acesso para cadastrar templates!\n";
                 continue;
+                //como passamos a usar subclasses, podemos pegar o bool do metodo especifico de cada uma
+                //ou seja, Chef::podeCadastrarTemplate é true e Cozinheiro é false.
             }
             std::string titulo, descricao;
             int rend, n;

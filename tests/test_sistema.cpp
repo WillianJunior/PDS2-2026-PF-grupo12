@@ -2,6 +2,7 @@
 #include "Sistema.hpp"
 #include <fstream>
 #include <cstdio>
+#include "../include/Cozinheiro.hpp"
 
 TEST_CASE("Sistema: cadastrar usuario") {
     Sistema s;
@@ -225,8 +226,8 @@ TEST_CASE("Persistencia: carregar recupera usuarios") {
     s.carregar();
 
     REQUIRE(s.getUsuarios().size() == 1);
-    CHECK(s.getUsuarios().front().getNome()  == "Carlos");
-    CHECK(s.getUsuarios().front().getEmail() == "carlos@email.com");
+    CHECK(s.getUsuarios().front()->getNome()  == "Carlos");
+    CHECK(s.getUsuarios().front()->getEmail() == "carlos@email.com");
 }
 
 TEST_CASE("Persistencia: carregar recupera receita") {

@@ -1,4 +1,7 @@
 #include "Sistema.hpp"
+#include "Chef.hpp"
+#include "Cozinheiro.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -75,16 +78,22 @@ bool Sistema::cadastrarUsuario(const std::string& nome,
                                const nivelAcesso& nAcesso) {
     if (nome.empty() || email.empty() || senha.empty()) return false;
     for (const auto& u : _usuarios) {
-        if (u.getEmail() == email) return false;     // não permite duplicado
+        if (u->getEmail() == email) return false;     // não permite duplicado 
+        //edit 2: agora como sendo ponteiro, usuario precisa de -> e isso vale pra todos os atributos
     }
-    _usuarios.emplace_back(nome, email, senha, nAcesso);
+    if (nAcesso == nivelAcesso::Chef) {
+        _usuarios.push_back(std::make_unique<Chef>(nome, email, senha));
+    } else {
+        _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
+    }
     return true;
 }
 
 bool Sistema::login(const std::string& email, const std::string& senha) {
     for (auto& u : _usuarios) {
-        if (u.getEmail() == email && u.autenticar(senha)) {
-            _usuarioAtivo = &u;                       // OK: list não invalida
+        if (u->getEmail() == email && u->autenticar(senha)) {
+            _usuarioAtivo = u.get();                       // OK: list não invalida
+            //essa edit nova u.get é pra pegar o Usuario* 
             return true;
         }
     }
@@ -124,8 +133,8 @@ bool Sistema::removerReceita(const std::string& titulo) {
             Receita* alvo = &(*it);                  
 
             for (auto& u : _usuarios) {
-                u.removerReceitaPropria(alvo);
-                u.removerFavorita(alvo);
+                u->removerReceitaPropria(alvo);
+                u->removerFavorita(alvo);
             }
 
             _receitas.erase(it);                 
@@ -177,8 +186,8 @@ bool Sistema::avaliar(const std::string& tituloReceita, int nota,
 std::list<Receita>& Sistema::getReceitas()       { return _receitas; }
 const std::list<Receita>& Sistema::getReceitas() const { return _receitas; }
 
-std::list<Usuario>& Sistema::getUsuarios()       { return _usuarios; }
-const std::list<Usuario>& Sistema::getUsuarios() const { return _usuarios; }
+std::list<std::unique_ptr<Usuario>>&  Sistema::getUsuarios()       { return _usuarios; }
+const std::list<std::unique_ptr<Usuario>>& Sistema::getUsuarios() const { return _usuarios; }
 
 std::map<std::string,TemplateReceita>& Sistema::getTemplates()       { return _templates; }
 const std::map<std::string,TemplateReceita>& Sistema::getTemplates() const { return _templates; }
@@ -207,7 +216,7 @@ void Sistema::salvar() {
         return;
     }
     for (const auto& u : _usuarios) {
-        fu << u.getNome() << "," << u.getEmail() << "," << u.getSenha() << "," << nAcessoParaStr(u.getAcesso()) << "\n";
+        fu << u->getNome() << "," << u->getEmail() << "," << u->getSenha() << "," << nAcessoParaStr(u->getAcesso()) << "\n"; //como temos override, getAcesso vem das filhas.
         //atenção aqui! coloquei texto simples na senha, mas sugiro colocarmos  hash no futuro - Bernardo.
         //mas resolve problema de senha vazia passando no login que estava tendo. Olhar em carregar() tambem.
         //coloquei nivel de acesso pra persistir.
@@ -257,7 +266,12 @@ void Sistema::carregar() {
         std::getline(ss, sacesso, ',');
         
         if (!nome.empty()) {
-            _usuarios.emplace_back(nome, email, senha, strParaNAcesso(sacesso));
+            nivelAcesso nAcesso = strParaNAcesso(sacesso);
+            if (nAcesso == nivelAcesso::Chef) {
+                _usuarios.push_back(std::make_unique<Chef>(nome, email, senha));
+            } else {
+                _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
+            }
         }
     }
 

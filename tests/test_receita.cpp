@@ -4,6 +4,7 @@
 #include "../include/Avaliacao.hpp"
 #include "../include/Usuario.hpp"
 #include <stdexcept>
+#include "../include/Cozinheiro.hpp"
 
 TEST_CASE("Criar receita") {
 
@@ -65,7 +66,7 @@ TEST_CASE("Media de notas") {
         Categoria::Doce, 1
     );
 
-    Usuario u("Joana", "joana@email.com", "123", nivelAcesso::Cozinheiro);
+    Cozinheiro u("Joana", "joana@email.com", "123");
 
     Avaliacao a1(
         &u,
