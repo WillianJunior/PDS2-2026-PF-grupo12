@@ -1,6 +1,7 @@
 #include "Sistema.hpp"
 #include "Chef.hpp"
 #include "Cozinheiro.hpp"
+#include "Admin.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -48,8 +49,9 @@ std::string Sistema::nAcessoParaStr(nivelAcesso n) {
     switch (n) {
         case nivelAcesso::Chef:   return "Chef";
         case nivelAcesso::Cozinheiro:   return "Cozinheiro";
+        case nivelAcesso::Admin:   return "Admin";
     }
-    return "Facil";
+    return "Cozinheiro";
 }
 
 Dificuldade Sistema::strParaDificuldade(const std::string& s) {
@@ -68,7 +70,7 @@ Categoria Sistema::strParaCategoria(const std::string& s) {
 
 nivelAcesso Sistema::strParaNAcesso(const std::string& s) {
     if (s == "Chef") return nivelAcesso::Chef;
-    if (s == "Cozinheiro") return nivelAcesso::Cozinheiro;
+    if (s == "Admin") return nivelAcesso::Admin;
     return nivelAcesso::Cozinheiro;
 }
 
@@ -269,6 +271,8 @@ void Sistema::carregar() {
             nivelAcesso nAcesso = strParaNAcesso(sacesso);
             if (nAcesso == nivelAcesso::Chef) {
                 _usuarios.push_back(std::make_unique<Chef>(nome, email, senha));
+            } else if (nAcesso == nivelAcesso::Admin) {
+                _usuarios.push_back(std::make_unique<Admin>(nome, email, senha));
             } else {
                 _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
             }

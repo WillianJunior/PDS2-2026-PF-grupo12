@@ -4,7 +4,7 @@
 #include <string>
 
 class Receita; 
-enum class nivelAcesso {Chef, Cozinheiro};
+enum class nivelAcesso {Chef, Cozinheiro, Admin};
 
 /**
  * @class Usuario

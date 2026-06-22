@@ -112,17 +112,20 @@ int main() {
                 std::cout << "Senha: "; 
                 std::getline(std::cin, senha);
 
-                std::cout << "Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha: ";
+                std::cout << "Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha: \n3 - Administrador: ";
                 std::cin >> Acesso;
                 std::cin.ignore();
 
-                if(Acesso < 1 || Acesso > 2){
+                if(Acesso < 1 || Acesso > 3){
                     throw(std::invalid_argument("Tipo de acesso inválido"));
                     std::cout << "\a" << std::flush;
                     
                 }
 
-                nivelAcesso nAcesso = (Acesso == 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef; 
+                nivelAcesso nAcesso;
+                if (Acesso == 1) nAcesso = nivelAcesso::Cozinheiro; 
+                else if (Acesso == 2) nAcesso = nivelAcesso::Chef; 
+                else nAcesso = nivelAcesso::Admin; 
 
                 if (s.cadastrarUsuario(nome, email, senha, nAcesso))
                     std::cout << "Usuario cadastrado!\n";
@@ -146,9 +149,10 @@ int main() {
                 std::cout << "\nLogado!\n";
             }
                 
-            else
+            else {
                 std::cout << "\nEmail ou senha invalidos.\n";
                 std::cout << "\a" << std::flush;
+            }    
         }
         else if (opcao == 3) {
             s.logout();

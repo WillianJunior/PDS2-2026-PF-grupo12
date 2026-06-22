@@ -35,6 +35,7 @@ private:
     static Categoria   strParaCategoria(const std::string& s);
     static nivelAcesso strParaNAcesso(const std::string& s);
 
+    bool isAdmin() const; // retorna true se o usuário ativo for Admin
 public:
     Sistema();
 
