@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <cstdlib>
+#include <iomanip>
 #include "Sistema.hpp"
 
 //adicionando 3 novas funcoes para fazer um menu bonito.
@@ -91,6 +92,7 @@ int main() {
         std::cout << "12. Favoritar receita\n";
         std::cout << "13. Ver favoritas\n";
         std::cout << "14. Salvar dados\n";
+        std::cout << "15. Ver receita completa\n";
         std::cout << "0. Sair\n";
         std::cout << "\nOpcao: ";
         std::cin >> opcao;
@@ -347,9 +349,17 @@ int main() {
                 std::cout << "\n=== Receitas ===\n";
                 int i = 1;
                 for (const auto& r : receitas) {
+                    double media = r.calcularMediaNotas();
+                    int numAval = static_cast<int>(r.getAvaliacoes().size());
                     std::cout << i++ << ". " << r.getTitulo()
-                              << " (" << r.getTempoPreparo() << " min, nota "
-                              << r.calcularMediaNotas() << ")\n";
+                              << " | " << r.getTempoPreparo() << " min";
+                    if (numAval == 0) {
+                        std::cout << " | Sem avaliacoes";
+                    } else {
+                        std::cout << " | Nota: " << std::fixed << std::setprecision(1)
+                                  << media << "/5 (" << numAval << "avaliacoes)";
+                    }
+                    std::cout <<"\n";
                 }
             }
         }
@@ -409,13 +419,23 @@ int main() {
             std::cout << "Comentario: "; 
             std::getline(std::cin, comentario);
 
-            if (s.avaliar(titulo, nota, comentario))
+            if (s.avaliar(titulo, nota, comentario)){
                 std::cout << "Avaliacao adicionada!\n";
-            else{
+                // exibe nova media atualizada
+                auto res = s.buscarPorTitulo(titulo);
+                if (!res.empty()) {
+                    double novaMedia = res[0]->calcularMediaNotas();
+                    int total = static_cast<int>(res[0]->getAvaliacoes().size());
+                    std::cout << "Nova nota media de \"" << res[0]->getTitulo()
+                              << "\": " << std::fixed << std::setprecision(1)
+                              << novaMedia << "/5 (" << total << " avaliacoes)\n";
+                }
+            } else{
                 std::cout << "Receita nao encontrada.\n";
                 std::cout << "\a" << std::flush;
             }
         }
+
         else if (opcao == 12) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
@@ -454,6 +474,91 @@ int main() {
         else if (opcao == 14) {
             s.salvar();
             std::cout << "Salvo em data/\n";
+        }
+        else if (opcao == 15) {
+            std::string titulo;
+            std::cout << "Titulo da receita: ";
+            std::getline(std::cin, titulo);
+
+            auto res = s.buscarPorTitulo(titulo);
+            if (res.empty()) {
+                std::cout << "Receita nao encontrada.\n";
+                std::cout << "\a" << std::flush;
+            } else {
+                Receita* r = res[0];
+
+                auto difStr = [](Dificuldade d) -> std::string {
+                    switch(d) {
+                        case Dificuldade::Facil:   return "Facil";
+                        case Dificuldade::Medio:   return "Medio";
+                        case Dificuldade::Dificil: return "Dificil";
+                    }
+                    return "?";
+                };
+                auto catStr = [](Categoria c) -> std::string {
+                    switch(c) {
+                        case Categoria::Doce:        return "Doce";
+                        case Categoria::Salgado:     return "Salgado";
+                        case Categoria::Vegano:      return "Vegano";
+                        case Categoria::Vegetariano: return "Vegetariano";
+                        case Categoria::Outro:       return "Outro";
+                    }
+                    return "?";
+                };
+
+                std::cout << "\n============================================\n";
+                std::cout << "  " << r->getTitulo() << "\n";
+                std::cout << "============================================\n";
+                std::cout << "Categoria   : " << catStr(r->getCategoria()) << "\n";
+                std::cout << "Dificuldade : " << difStr(r->getDificuldade()) << "\n";
+                std::cout << "Tempo       : " << r->getTempoPreparo() << " min\n";
+                std::cout << "Rendimento  : " << r->getRendimento() << " pessoa(s)\n";
+
+                double media = r->calcularMediaNotas();
+                int numAval  = static_cast<int>(r->getAvaliacoes().size());
+                if (numAval == 0) {
+                    std::cout << "Nota        : Sem avaliacoes\n";
+                } else {
+                    std::cout << "Nota        : " << std::fixed << std::setprecision(1)
+                              << media << "/5 (" << numAval << " avaliacao(oes))\n";
+                }
+
+                std::cout << "\n--- Ingredientes ---\n";
+                const auto& ings = r->getIngredientes();
+                if (ings.empty()) {
+                    std::cout << "  (nenhum ingrediente cadastrado)\n";
+                } else {
+                    for (const auto& ing : ings) {
+                        std::cout << "  - " << ing.getNome()
+                                  << ": " << ing.getQuantidade()
+                                  << " " << ing.getUnidade();
+                        if (!ing.getTipo().empty())
+                            std::cout << " [" << ing.getTipo() << "]";
+                        std::cout << "\n";
+                    }
+                }
+
+                std::cout << "\n--- Instrucoes ---\n";
+                const std::string& instr = r->getInstrucoes();
+                if (instr.empty()) {
+                    std::cout << "  (sem instrucoes cadastradas)\n";
+                } else {
+                    std::cout << "  " << instr << "\n";
+                }
+
+                std::cout << "\n--- Avaliacoes ---\n";
+                const auto& avals = r->getAvaliacoes();
+                if (avals.empty()) {
+                    std::cout << "  (nenhuma avaliacao)\n";
+                } else {
+                    for (const auto& av : avals) {
+                        std::cout << "  [" << av.getNota() << "/5] "
+                                  << av.getAutor()->getNome() << ": "
+                                  << av.getComentario() << "\n";
+                    }
+                }
+                std::cout << "============================================\n";
+            }
         }
         else if (opcao == 0) {
             s.salvar();
