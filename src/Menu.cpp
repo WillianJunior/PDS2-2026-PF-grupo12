@@ -7,6 +7,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <iomanip>
+#include <limits>
+#include <string>
+#include <cctype>
 
 void Menu::exibirCabecalho() const {
     std::cout << R"(
@@ -44,6 +47,12 @@ void Menu::limparTela() const {
     system("clear");
 }
 
+void Menu::pausar() const {
+    std::cout << "\nPressione Enter para continuar...";
+    std::string descarta;
+    std::getline(std::cin, descarta);  // espera o usuario apertar Enter
+}
+
 void Menu::exibirOpcoes(bool logado, const std::string& nome) const {
     
     std::cout << "██▄  ▄██ ██████ ███  ██ ██  ██\n";
@@ -72,11 +81,68 @@ void Menu::exibirOpcoes(bool logado, const std::string& nome) const {
     std::cout << "\nOpcao: ";
 }
 
+int Menu::lerInteiro(const std::string& prompt) const {
+    std::string linha;
+    while (true) {
+        std::cout << prompt;
+        std::getline(std::cin, linha);
+
+        // tenta converter a linha INTEIRA em inteiro.
+        // stoi le o prefixo numerico e informa em 'pos' quantos caracteres usou.
+        try {
+            size_t pos;
+            int valor = std::stoi(linha, &pos);
+            // pula espacos em branco que venham depois do numero
+            while (pos < linha.size() &&
+                   std::isspace(static_cast<unsigned char>(linha[pos]))) {
+                pos++;
+            }
+            // so aceita se TODA a linha era o numero 
+            if (pos == linha.size() && !linha.empty()) {
+                return valor;
+            }
+        } catch (const std::exception&) {
+            // stoi lanca se a linha nao comeca com numero (ex: "arroz")
+        }
+        std::cout << "Entrada invalida. Digite um numero inteiro.\n";
+        std::cout << "\a" << std::flush;
+    }
+}
+
 int Menu::lerOpcao() const {
-    int opcao;
-    std::cin >> opcao;
-    std::cin.ignore();
-    return opcao;
+    // usa o leitor robusto: entrada invalida no menu nao trava mais o programa
+    return lerInteiro("");
+}
+
+double Menu::lerDouble(const std::string& prompt) const {
+    std::string linha;
+    while (true) {
+        std::cout << prompt;
+        std::getline(std::cin, linha);
+
+        // aceita virgula como separador decimal e troca por ponto
+        for (char& c : linha) {
+            if (c == ',') c = '.';
+        }
+
+        try {
+            size_t pos;
+            double valor = std::stod(linha, &pos);
+            // pula espacos depois do numero
+            while (pos < linha.size() &&
+                   std::isspace(static_cast<unsigned char>(linha[pos]))) {
+                pos++;
+            }
+            // so aceita se TODA a linha era o numero 
+            if (pos == linha.size() && !linha.empty()) {
+                return valor;
+            }
+        } catch (const std::exception&) {
+            // stod lanca se a linha nao comeca com numero
+        }
+        std::cout << "Entrada invalida. Digite um numero.\n";
+        std::cout << "\a" << std::flush;
+    }
 }
 
 bool Menu::exigirLogin(Sistema& s) const {
@@ -117,9 +183,7 @@ void Menu::cadastrarUsuarioUI(Sistema& s) const {
         std::cout << "Senha: ";
         std::getline(std::cin, senha);
 
-        std::cout << "Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha \n3 - Administrador: ";
-        std::cin >> Acesso;
-        std::cin.ignore();
+        Acesso = lerInteiro("Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha \n3 - Administrador: ");
 
         if (Acesso < 1 || Acesso > 3) {
             throw std::invalid_argument("Tipo de acesso invalido");
@@ -161,19 +225,11 @@ void Menu::cadastrarReceitaUI(Sistema& s) const {
     std::cout << "Titulo: ";
     std::getline(std::cin, titulo);
 
-    std::cout << "Tempo (min): ";
-    std::cin >> tempo;
+    tempo = lerInteiro("Tempo (min): ");
+    dif = lerInteiro("Dificuldade (1=Facil, 2=Medio, 3=Dificil): ");
+    cat = lerInteiro("Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): ");
+    rend = lerInteiro("Rendimento (Numero de pessoas que a receita serve.): ");
 
-    std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): ";
-    std::cin >> dif;
-
-    std::cout << "Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): ";
-    std::cin >> cat;
-
-    std::cout << "Rendimento (Numero de pessoas que a receita serve.)";
-    std::cin >> rend;
-
-    std::cin.ignore();
     std::cout << "Instrucoes: ";
     std::getline(std::cin, instrucoes);
 
@@ -185,19 +241,16 @@ void Menu::cadastrarReceitaUI(Sistema& s) const {
         Receita* r = s.cadastrarReceita(titulo, tempo, d, c, rend);
         r->definirInstrucoes(instrucoes);
 
-        std::cout << "Quantos ingredientes? "; std::cin >> n;
-        std::cin.ignore();
+        n = lerInteiro("Quantos ingredientes? ");
         for (int i = 0; i < n; ++i) {
             std::string nome, unidade, tipo;
-            int quant;
+            double quant;
             std::cout << "-- Ingrediente " << (i+1) << " --\n";
             std::cout << "Nome: ";
             std::getline(std::cin, nome);
 
-            std::cout << "Quantidade: ";
-            std::cin >> quant;
+            quant = lerDouble("Quantidade: ");
 
-            std::cin.ignore();
             std::cout << "Unidade: ";
             std::getline(std::cin, unidade);
 
@@ -221,19 +274,11 @@ void Menu::cadastrarReceitaTemplateUI(Sistema& s) const {
     std::cout << "Titulo: ";
     std::getline(std::cin, titulo);
 
-    std::cout << "Tempo (min): ";
-    std::cin >> tempo;
+    tempo = lerInteiro("Tempo (min): ");
+    dif = lerInteiro("Dificuldade (1=Facil, 2=Medio, 3=Dificil): ");
+    cat = lerInteiro("Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): ");
+    rend = lerInteiro("Rendimento (Numero de pessoas que a receita serve.): ");
 
-    std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): ";
-    std::cin >> dif;
-
-    std::cout << "Categoria (1=Doce, 2=Salgado, 3=Vegano, 4=Vegetariano, 5=Outro): ";
-    std::cin >> cat;
-
-    std::cout << "Rendimento (Numero de pessoas que a receita serve.): ";
-    std::cin >> rend;
-
-    std::cin.ignore();
     std::cout << "Instrucoes: ";
     std::getline(std::cin, instrucoes);
 
@@ -288,27 +333,21 @@ void Menu::cadastrarTemplateUI(Sistema& s) const {
     std::cout << "Descricao: ";
     std::getline(std::cin, descricao);
 
-    std::cout << "Rendimento (Numero de pessoas que a receita serve.): ";
-    std::cin >> rend;
-
-    std::cin.ignore();
+    rend = lerInteiro("Rendimento (Numero de pessoas que a receita serve.): ");
 
     try{
         TemplateReceita* t = s.cadastrarTemplate(titulo, descricao, rend);
 
-        std::cout << "Quantos ingredientes? "; std::cin >> n;
-        std::cin.ignore();
+        n = lerInteiro("Quantos ingredientes? ");
         for (int i = 0; i < n; ++i) {
             std::string nome, unidade, tipo;
-            int quant;
+            double quant;
             std::cout << "-- Ingrediente " << (i+1) << " --\n";
             std::cout << "Nome: ";
             std::getline(std::cin, nome);
 
-            std::cout << "Quantidade: ";
-            std::cin >> quant;
+            quant = lerDouble("Quantidade: ");
 
-            std::cin.ignore();
             std::cout << "Unidade: ";
             std::getline(std::cin, unidade);
 
@@ -367,8 +406,7 @@ void Menu::buscarReceitaUI(Sistema& s) const {
 
 void Menu::filtrarDificuldadeUI(Sistema& s) const {
     int dif;
-    std::cout << "Dificuldade (1=Facil, 2=Medio, 3=Dificil): ";
-    std::cin >> dif;
+    dif = lerInteiro("Dificuldade (1=Facil, 2=Medio, 3=Dificil): ");
 
     Dificuldade d = (dif == 2) ? Dificuldade::Medio : (dif == 3) ? Dificuldade::Dificil : Dificuldade::Facil;
 
@@ -386,10 +424,8 @@ void Menu::avaliarReceitaUI(Sistema& s) const {
     std::cout << "Titulo da receita: ";
     std::getline(std::cin, titulo);
 
-    std::cout << "Nota (1-5): ";
-    std::cin >> nota;
+    nota = lerInteiro("Nota (1-5): ");
 
-    std::cin.ignore();
     std::cout << "Comentario: ";
     std::getline(std::cin, comentario);
 
@@ -438,20 +474,17 @@ void Menu::adicionarIngredientesUI(Sistema& s) const {
     if (!exigirLogin(s)) return;
 
     int n;
-    std::cout << "Quantos ingredientes? "; std::cin >> n;
-    std::cin.ignore();
+    n = lerInteiro("Quantos ingredientes? ");
 
     for (int i = 0; i < n; ++i) {
         std::string nome, unidade, tipo;
-        int quant;
+        double quant;
         std::cout << "-- Ingrediente " << (i+1) << " --\n";
         std::cout << "Nome: ";
         std::getline(std::cin, nome);
 
-        std::cout << "Quantidade: ";
-        std::cin >> quant;
+        quant = lerDouble("Quantidade: ");
 
-        std::cin.ignore();
         std::cout << "Unidade: ";
         std::getline(std::cin, unidade);
 

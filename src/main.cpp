@@ -23,7 +23,6 @@ int main() {
     int opcao = -1;
 
     while (opcao != 0) {
-        menu.telaCarregamento();
         menu.limparTela();
 
         bool logado = s.getUsuarioAtivo() != nullptr;
@@ -60,6 +59,10 @@ int main() {
                 std::cout << "\a" << std::flush;
                 break;
         }
+
+        // pausa para o usuario ler a saida antes de o menu ser redesenhado
+        // (nao pausa ao sair, opcao 0)
+        if (opcao != 0) menu.pausar();
     }
 
     return 0;

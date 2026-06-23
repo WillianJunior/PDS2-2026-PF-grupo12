@@ -13,6 +13,13 @@ public:
     void limparTela() const;                                   
     void telaCarregamento() const;    
 
+    
+    void pausar() const;
+
+    int lerInteiro(const std::string& prompt) const;
+
+    double lerDouble(const std::string& prompt) const;
+
     bool exigirLogin(Sistema& s) const;
 
     void cadastrarUsuarioUI(Sistema& s) const;
