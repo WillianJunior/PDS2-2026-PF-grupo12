@@ -35,6 +35,7 @@ private:
     static Categoria   strParaCategoria(const std::string& s);
     static nivelAcesso strParaNAcesso(const std::string& s);
 
+    bool isAdmin() const; // retorna true se o usuário ativo for Admin
 public:
     Sistema();
 
@@ -63,6 +64,7 @@ public:
     bool removerReceita(const std::string& titulo);
 
     std::vector<Receita*> buscarPorTitulo(const std::string& titulo);
+    std::vector<Receita*> sugerirReceitas();
     std::vector<Receita*> filtrarPorDificuldade(Dificuldade d);
     std::vector<Receita*> filtrarPorNotaMinima(double notaMinima);
 

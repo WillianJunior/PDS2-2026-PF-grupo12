@@ -1,5 +1,6 @@
 #include "../include/Menu.hpp"
 #include "../include/Sistema.hpp"
+#include "../include/Ingrediente.hpp"
 
 #include <iostream>
 #include <thread>
@@ -63,6 +64,8 @@ void Menu::exibirOpcoes(bool logado, const std::string& nome) const {
     std::cout << "                     11. Avaliar receita\n";
     std::cout << "                     12. Favoritar\n";
     std::cout << "                     13. Ver favoritas\n";
+    std::cout << "\n  INGREDIENTES\n";
+    std::cout << "  15. Adicionar meus ingredientes   16. Sugerir receitas\n";
     std::cout << "\n  14. Salvar dados     0. Sair\n";
     std::cout << "\nOpcao: ";
 }
@@ -112,15 +115,17 @@ void Menu::cadastrarUsuarioUI(Sistema& s) const {
         std::cout << "Senha: ";
         std::getline(std::cin, senha);
 
-        std::cout << "Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha: ";
+        std::cout << "Escolha seu o tipo do seu perfil \n1 - Cozinheiro \n2 - Chef de cozinha \n3 - Administrador: ";
         std::cin >> Acesso;
         std::cin.ignore();
 
-        if (Acesso < 1 || Acesso > 2) {
+        if (Acesso < 1 || Acesso > 3) {
             throw std::invalid_argument("Tipo de acesso invalido");
         }
 
-        nivelAcesso nAcesso = (Acesso == 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef;
+        nivelAcesso nAcesso = (Acesso == 1) ? nivelAcesso::Cozinheiro
+                            : (Acesso == 2) ? nivelAcesso::Chef
+                            : nivelAcesso::Admin;
 
         if (s.cadastrarUsuario(nome, email, senha, nAcesso))
             std::cout << "Usuario cadastrado!\n";
@@ -426,4 +431,53 @@ void Menu::verFavoritasUI(Sistema& s) const {
 void Menu::salvarDadosUI(Sistema& s) const {
     s.salvar();
     std::cout << "Salvo em data/\n";
+}
+void Menu::adicionarIngredientesUI(Sistema& s) const {
+    if (!exigirLogin(s)) return;
+
+    int n;
+    std::cout << "Quantos ingredientes? "; std::cin >> n;
+    std::cin.ignore();
+
+    for (int i = 0; i < n; ++i) {
+        std::string nome, unidade, tipo;
+        int quant;
+        std::cout << "-- Ingrediente " << (i+1) << " --\n";
+        std::cout << "Nome: ";
+        std::getline(std::cin, nome);
+
+        std::cout << "Quantidade: ";
+        std::cin >> quant;
+
+        std::cin.ignore();
+        std::cout << "Unidade: ";
+        std::getline(std::cin, unidade);
+
+        std::cout << "Tipo: ";
+        std::getline(std::cin, tipo);
+
+        s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente(nome, quant, unidade, tipo));
+    }
+}
+
+void Menu::sugerirReceitasUI(Sistema& s) const {
+    if (!exigirLogin(s)) return;
+
+    try{
+        std::vector<Receita*> sugestoes = s.sugerirReceitas();
+        int i = 1;
+
+        if(sugestoes.empty()){
+            std::cout << "Nenhuma receita pode ser feita com os ingredientes disponiveis do usuário.\n";
+        }
+
+        std::cout << "\n=== Receitas Disponiveis ===\n";
+        for (const auto& r : sugestoes) {
+            std::cout << i++ << ". " << r->getTitulo()
+                      << " (" << r->getTempoPreparo() << " min, nota "
+                      << r->calcularMediaNotas() << ")\n";
+        }
+    } catch (const std::invalid_argument& e){
+        std::cout << "Erro ao procurar receitas: " << e.what() << std::endl;
+    }
 }

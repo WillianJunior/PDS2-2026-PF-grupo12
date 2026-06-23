@@ -1,6 +1,7 @@
 #include "Sistema.hpp"
 #include "Chef.hpp"
 #include "Cozinheiro.hpp"
+#include "Admin.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -48,8 +49,9 @@ std::string Sistema::nAcessoParaStr(nivelAcesso n) {
     switch (n) {
         case nivelAcesso::Chef:   return "Chef";
         case nivelAcesso::Cozinheiro:   return "Cozinheiro";
+        case nivelAcesso::Admin:   return "Admin";
     }
-    return "Facil";
+    return "Cozinheiro";
 }
 
 Dificuldade Sistema::strParaDificuldade(const std::string& s) {
@@ -68,7 +70,7 @@ Categoria Sistema::strParaCategoria(const std::string& s) {
 
 nivelAcesso Sistema::strParaNAcesso(const std::string& s) {
     if (s == "Chef") return nivelAcesso::Chef;
-    if (s == "Cozinheiro") return nivelAcesso::Cozinheiro;
+    if (s == "Admin") return nivelAcesso::Admin;
     return nivelAcesso::Cozinheiro;
 }
 
@@ -155,6 +157,47 @@ std::vector<Receita*> Sistema::buscarPorTitulo(const std::string& titulo) {
     return resultado;
 }
 
+// Sugere receitas que o usuario ativo consegue fazer com os ingredientes que tem disponiveis.
+// Um ingrediente da receita e considerado "disponivel" se o usuario possui um ingrediente
+// de mesmo nome (comparacao por nome, ignorando quantidade/unidade) -- ver toLower para
+// tornar a comparacao insensivel a maiusculas/minusculas.
+std::vector<Receita*> Sistema::sugerirReceitas(){
+
+    std::vector<Receita*> SujestReceita;
+    const auto& disponiveis = getUsuarioAtivo()->getIngredientesDisp();
+    if(disponiveis.empty()){
+        throw std::invalid_argument("Nenhum ingrediente disponivel foi adicionado pelo usuário!");
+    }
+
+    for (auto& receita : this->_receitas) {
+
+        bool podeFazer = true;
+
+        for (const auto& ingrediente : receita.getIngredientes())
+        {
+            // o usuario tem um ingrediente com este nome?
+            bool tem = std::any_of(
+                disponiveis.begin(), disponiveis.end(),
+                [&](const Ingrediente& disp){
+                    return toLower(disp.getNome()) == toLower(ingrediente.getNome());
+                });
+
+            if (!tem)
+            {
+                podeFazer = false;
+                break;
+            }
+        }
+
+        if (podeFazer)
+        {
+            SujestReceita.push_back(&receita);
+        }
+    }
+
+    return SujestReceita;
+}
+
 std::vector<Receita*> Sistema::filtrarPorDificuldade(Dificuldade d) {
     std::vector<Receita*> resultado;
     for (auto& r : _receitas) {
@@ -174,8 +217,9 @@ std::vector<Receita*> Sistema::filtrarPorNotaMinima(double notaMinima) {
 bool Sistema::avaliar(const std::string& tituloReceita, int nota,
                       const std::string& comentario) {
     if (!_usuarioAtivo) return false;                 // exige login
+    std::string alvo = toLower(tituloReceita);
     for (auto& r : _receitas) {
-        if (r.getTitulo() == tituloReceita) {
+        if (toLower(r.getTitulo()) == alvo) {
             r.adicionarAvaliacao(Avaliacao(_usuarioAtivo, nota, comentario));
             return true;
         }
@@ -269,6 +313,8 @@ void Sistema::carregar() {
             nivelAcesso nAcesso = strParaNAcesso(sacesso);
             if (nAcesso == nivelAcesso::Chef) {
                 _usuarios.push_back(std::make_unique<Chef>(nome, email, senha));
+            } else if (nAcesso == nivelAcesso::Admin) {
+                _usuarios.push_back(std::make_unique<Admin>(nome, email, senha));
             } else {
                 _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
             }

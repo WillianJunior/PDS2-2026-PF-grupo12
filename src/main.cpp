@@ -49,6 +49,8 @@ int main() {
         case 12: menu.favoritarReceitaUI(s);         break;
         case 13: menu.verFavoritasUI(s);             break;
         case 14: menu.salvarDadosUI(s);              break;
+        case 15: menu.adicionarIngredientesUI(s);    break;
+        case 16: menu.sugerirReceitasUI(s);          break;
         case 0:
             s.salvar();
             std::cout << "Salvo. Ate logo!\n";
@@ -64,5 +66,3 @@ int main() {
     return 0;
 
 }
-
-

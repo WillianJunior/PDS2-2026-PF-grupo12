@@ -29,6 +29,8 @@ public:
     void favoritarReceitaUI(Sistema& s) const;
     void verFavoritasUI(Sistema& s) const;
     void salvarDadosUI(Sistema& s) const;
+    void adicionarIngredientesUI(Sistema& s) const;
+    void sugerirReceitasUI(Sistema& s) const;
     
 
 
