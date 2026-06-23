@@ -176,8 +176,9 @@ std::vector<Receita*> Sistema::filtrarPorNotaMinima(double notaMinima) {
 bool Sistema::avaliar(const std::string& tituloReceita, int nota,
                       const std::string& comentario) {
     if (!_usuarioAtivo) return false;                 // exige login
+    std::string alvo = toLower(tituloReceita);
     for (auto& r : _receitas) {
-        if (r.getTitulo() == tituloReceita) {
+        if (toLower(r.getTitulo()) == alvo) {
             r.adicionarAvaliacao(Avaliacao(_usuarioAtivo, nota, comentario));
             return true;
         }

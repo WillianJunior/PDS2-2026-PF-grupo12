@@ -407,6 +407,19 @@ int main() {
                 std::cout << "\a" << std::flush;
                 continue;
             }
+
+            // Lista receitas disponíveis
+            const auto& receitas = s.getReceitas();
+            if (receitas.empty()) {
+                std::cout << "Nenhuma receita cadastrada.\n";
+                continue;
+            }
+            std::cout << "\n=== Receitas disponíveis ===\n";
+            for (const auto& r : receitas) {
+                std::cout << "  - " << r.getTitulo() << "\n";
+            }
+            std::cout << "\n";
+
             std::string titulo, comentario;
             int nota;
             std::cout << "Titulo da receita: "; 
