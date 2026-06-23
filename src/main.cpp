@@ -4,91 +4,49 @@
  */
 #include <iostream>
 #include <string>
+#include <thread>
+#include <chrono>
+#include <cstdlib>
 #include "Sistema.hpp"
+#include "Menu.hpp"
 
 
 //main serve como um loop de opções. podemos incrementar ela na proxima semana
 int main() {
     Sistema s;
     s.carregar();
+    Menu menu;
 
-    std::cout << "=== Ricettario - Grupo 12 ===\n";
+    menu.exibirCabecalho();
+    menu.telaCarregamento();
+    
 
     int opcao = -1;
+    
     while (opcao != 0) {
-        std::cout << "\n--- Menu ---\n";
-        if (s.getUsuarioAtivo())
-            std::cout << "(LOGADO: " << s.getUsuarioAtivo()->getNome() << ")\n";
-        else
-            std::cout << "(NAO LOGADO)\n";
+        menu.telaCarregamento();
+        menu.limparTela();
 
-        std::cout << "1. Cadastrar usuario\n";
-        std::cout << "2. Login\n";
-        std::cout << "3. Logout\n";
-        std::cout << "4. Cadastrar receita\n";
-        std::cout << "5. Cadastrar receita via template\n";
-        std::cout << "6. Cadastrar Template\n";
-        std::cout << "7. Listar receitas\n";
-        std::cout << "8. Listar templates\n";
-        std::cout << "9. Buscar receita\n";
-        std::cout << "10. Filtrar por dificuldade\n";
-        std::cout << "11. Avaliar receita\n";
-        std::cout << "12. Favoritar receita\n";
-        std::cout << "13. Ver favoritas\n";
-        std::cout << "14. Salvar dados\n";
-        std::cout << "0. Sair\n";
-        std::cout << "Opcao: ";
-        std::cin >> opcao;
-        std::cin.ignore();
+        bool logado = s.getUsuarioAtivo() != nullptr;
+        std::string nomeUsuario = logado ? s.getUsuarioAtivo()->getNome() : "";
+        menu.exibirOpcoes(logado, nomeUsuario);
 
-        if (opcao == 1) {
-            try{
-                std::string nome, email, senha;
-                int Acesso;
+        opcao = menu.lerOpcao();
 
-                std::cout << "Nome: ";  
-                std::getline(std::cin, nome);
+        menu.limparTela();
 
-                std::cout << "Email: "; 
-                std::getline(std::cin, email);
-
-                std::cout << "Senha: "; 
-                std::getline(std::cin, senha);
-
-                std::cout << "Escolha seu o tipo do seu perfil (1-Cozinheiro 2-Chef de cozinha): ";
-                std::cin >> Acesso;
-                std::cin.ignore();
-
-                if(Acesso < 1 || Acesso > 2){
-                    throw(std::invalid_argument("Tipo de acesso inválido"));
-                }
-
-                nivelAcesso nAcesso = (Acesso == 1) ? nivelAcesso::Cozinheiro : nivelAcesso::Chef; 
-
-                if (s.cadastrarUsuario(nome, email, senha, nAcesso))
-                    std::cout << "Usuario cadastrado!\n";
-                else
-                    std::cout << "Falha no cadastro.\n";
-            } catch(const std::invalid_argument& e){
-                std::cout << "Falha no cadastro: " << e.what() << std::endl;
-            }
-        }
-        else if (opcao == 2) {
-            std::string email, senha;
-            std::cout << "Email: "; std::getline(std::cin, email);
-            std::cout << "Senha: "; std::getline(std::cin, senha);
-            if (s.login(email, senha))
-                std::cout << "Logado!\n";
-            else
-                std::cout << "Email ou senha invalidos.\n";
-        }
+        //limpando o main e colocando as implementações em Menu.cpp
+        if      (opcao == 1)  menu.cadastrarUsuarioUI(s);
+        else if (opcao == 2)  menu.loginUI(s);
         else if (opcao == 3) {
             s.logout();
-            std::cout << "Logout feito.\n";
+            std::cout << "\nLogout feito.\n";
         }
         else if (opcao == 4) {
             if (!s.getUsuarioAtivo()) {
-                std::cout << "Faca login primeiro.\n";
+                std::cout << "\nFaca login primeiro.\n";
+                std::cout << "\a" << std::flush;
+
                 continue;
             }
             std::string titulo, instrucoes;
@@ -146,11 +104,13 @@ int main() {
                 std::cout << "Receita cadastrada!\n";
             } catch (const std::invalid_argument& e) {
                 std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
+                std::cout << "\a" << std::flush;
             }
         }
         else if (opcao == 5) {
             if (!s.getUsuarioAtivo()) {
-                std::cout << "Faca login primeiro.\n";
+                std::cout << "\nFaca login primeiro.\n";
+                std::cout << "\a" << std::flush;
                 continue;
             }
             std::string titulo, instrucoes, chave_template;
@@ -201,17 +161,21 @@ int main() {
 
             } catch (const std::invalid_argument& e) {
                 std::cout << "Erro ao cadastrar receita: " << e.what() << "\n";
+                std::cout << "\a" << std::flush;
             } catch (const std::out_of_range&) {
                 std::cout << "Template nao encontrado.\n";
+                std::cout << "\a" << std::flush;
             }
         }
         else if (opcao == 6) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
+                std::cout << "\a" << std::flush;
                 continue;
             }
             else if(!s.getUsuarioAtivo()->podeCadastrarTemplate()){
                 std::cout << "Você não tem o nivel de acesso para cadastrar templates!\n";
+                std::cout << "\a" << std::flush;
                 continue;
                 //como passamos a usar subclasses, podemos pegar o bool do metodo especifico de cada uma
                 //ou seja, Chef::podeCadastrarTemplate é true e Cozinheiro é false.
@@ -256,6 +220,7 @@ int main() {
                 }
             } catch (const std::invalid_argument& e) {
                 std::cout << "Erro ao cadastrar template: " << e.what() << "\n";
+                std::cout << "\a" << std::flush;
             }
         }
         else if (opcao == 7) {
@@ -313,6 +278,7 @@ int main() {
         else if (opcao == 11) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
+                std::cout << "\a" << std::flush;
                 continue;
             }
             std::string titulo, comentario;
@@ -329,12 +295,15 @@ int main() {
 
             if (s.avaliar(titulo, nota, comentario))
                 std::cout << "Avaliacao adicionada!\n";
-            else
+            else{
                 std::cout << "Receita nao encontrada.\n";
+                std::cout << "\a" << std::flush;
+            }
         }
         else if (opcao == 12) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
+                std::cout << "\a" << std::flush;
                 continue;
             }
             std::string titulo;
@@ -345,6 +314,7 @@ int main() {
 
             if (res.empty()) {
                 std::cout << "Receita nao encontrada.\n";
+                std::cout << "\a" << std::flush;
             } else {
                 s.getUsuarioAtivo()->adicionarFavorita(res[0]);
                 std::cout << "Favoritada!\n";
@@ -353,6 +323,7 @@ int main() {
         else if (opcao == 13) {
             if (!s.getUsuarioAtivo()) {
                 std::cout << "Faca login primeiro.\n";
+                std::cout << "\a" << std::flush;
                 continue;
             }
             const auto& favs = s.getUsuarioAtivo()->getFavoritas();
@@ -374,6 +345,7 @@ int main() {
         }
         else {
             std::cout << "Opcao invalida.\n";
+            std::cout << "\a" << std::flush;
         }
     }
 
