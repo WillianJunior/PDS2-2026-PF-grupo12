@@ -292,11 +292,34 @@ void Sistema::salvar() {
            << r.getInstrucoes()                      << ","
            << ings                                   << "\n";
     }
+
+    // --- templates ---
+    std::ofstream ft("data/templates.csv");
+    if (!ft) {
+        std::cerr << "Erro: nao foi possivel abrir data/templates.csv para escrita\n";
+        return;
+    }
+    for (const auto& [chave, t] : _templates) {
+        std::string ings;
+        for (const auto& i : t.getIngredientesT()) {
+            if (!ings.empty()) ings += ";";
+            ings += i.getNome() + "|"
+                  + formatarQuantidade(i.getQuantidade()) + "|"
+                  + i.getUnidade() + "|"
+                  + i.getTipo();
+        }
+
+        ft << t.getNome()        << ","
+           << t.getDescricao()   << ","
+           << t.getRendimentoT() << ","
+           << ings               << "\n";
+    }
 }
 
 void Sistema::carregar() {
     _usuarios.clear();
     _receitas.clear();
+    _templates.clear();
     _usuarioAtivo = nullptr;
 
     // --- usuarios ---
@@ -361,6 +384,42 @@ void Sistema::carregar() {
             }
         } catch (const std::exception& e) {
             std::cerr << "Aviso: linha de receita ignorada (" << e.what() << "): "
+                      << linha << "\n";
+        }
+    }
+
+    // --- templates ---
+    std::ifstream ft("data/templates.csv");
+    while (std::getline(ft, linha)) {
+        try {
+            std::stringstream ss(linha);
+            std::string nome, descricao, srend, ings;
+            std::getline(ss, nome,      ',');
+            std::getline(ss, descricao, ',');
+            std::getline(ss, srend,     ',');
+            std::getline(ss, ings,      ',');
+
+            if (nome.empty()) continue;
+
+            // cadastrarTemplate cria o template no map e retorna ponteiro para ele
+            TemplateReceita* t = cadastrarTemplate(nome, descricao, std::stoi(srend));
+
+            std::stringstream si(ings);
+            std::string bloco;
+            while (std::getline(si, bloco, ';')) {
+                std::stringstream sb(bloco);
+                std::string inome, squant, unidade, tipo;
+                std::getline(sb, inome,   '|');
+                std::getline(sb, squant,  '|');
+                std::getline(sb, unidade, '|');
+                std::getline(sb, tipo,    '|');
+                if (!inome.empty()) {
+                    t->adicionarIngrediente(Ingrediente(inome, std::stod(squant),
+                                                        unidade, tipo));
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Aviso: linha de template ignorada (" << e.what() << "): "
                       << linha << "\n";
         }
     }
