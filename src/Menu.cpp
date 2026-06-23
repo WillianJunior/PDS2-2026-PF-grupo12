@@ -483,7 +483,14 @@ void Menu::adicionarIngredientesUI(Sistema& s) const {
         std::cout << "Nome: ";
         std::getline(std::cin, nome);
 
+        // valida quantidade: precisa ser estritamente positiva.
+        // Repete a leitura ate o usuario digitar um valor > 0.
         quant = lerDouble("Quantidade: ");
+        while (quant <= 0) {
+            std::cout << "Quantidade deve ser maior que zero.\n";
+            std::cout << "\a" << std::flush;
+            quant = lerDouble("Quantidade: ");
+        }
 
         std::cout << "Unidade: ";
         std::getline(std::cin, unidade);
@@ -491,7 +498,15 @@ void Menu::adicionarIngredientesUI(Sistema& s) const {
         std::cout << "Tipo: ";
         std::getline(std::cin, tipo);
 
-        s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente(nome, quant, unidade, tipo));
+        // adicionarIngredienteDisponivel retorna false se ja houver um
+        // ingrediente com esse nome na despensa (case-insensitive).
+        bool ok = s.getUsuarioAtivo()->adicionarIngredienteDisponivel(
+            Ingrediente(nome, quant, unidade, tipo));
+        if (!ok) {
+            std::cout << "Voce ja tem \"" << nome
+                      << "\" na despensa; ingrediente ignorado.\n";
+            std::cout << "\a" << std::flush;
+        }
     }
 }
 

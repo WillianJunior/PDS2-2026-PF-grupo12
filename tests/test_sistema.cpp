@@ -297,3 +297,203 @@ TEST_CASE("Persistencia: salvar + carregar preserva dados (round-trip)") {
     REQUIRE(ings.size() == 1);
     CHECK(ings[0].getNome() == "Fuba");
 }
+
+
+TEST_CASE("Persistencia: salvar serializa a despensa do usuario") {
+    Sistema s;
+    s.cadastrarUsuario("Caetano", "cae@email.com", "123", nivelAcesso::Chef);
+    s.login("cae@email.com", "123");
+    s.getUsuarioAtivo()->adicionarIngredienteDisponivel(
+        Ingrediente("Farinha", 500, "g", "Seco"));
+    s.salvar();
+
+    std::string conteudo = lerArquivo("data/usuarios.csv");
+    // a despensa vira o 5o campo, no sub-formato nome|qtd|unidade|tipo
+    CHECK(conteudo.find("Farinha|500|g|Seco") != std::string::npos);
+}
+
+TEST_CASE("Persistencia: carregar reconstroi a despensa do usuario") {
+    escreverCSV("data/usuarios.csv",
+                "Caetano,cae@email.com,123,Chef,Ovo|3|un|Fresco;Leite|1.5|L|Liquido\n",
+                "data/receitas.csv", "");
+
+    Sistema s;
+    s.carregar();
+
+    REQUIRE(s.getUsuarios().size() == 1);
+    const auto& disp = s.getUsuarios().front()->getIngredientesDisp();
+    REQUIRE(disp.size() == 2);
+    CHECK(disp[0].getNome()       == "Ovo");
+    CHECK(disp[0].getQuantidade() == doctest::Approx(3.0));
+    CHECK(disp[1].getNome()       == "Leite");
+    CHECK(disp[1].getQuantidade() == doctest::Approx(1.5));
+    CHECK(disp[1].getUnidade()    == "L");
+    CHECK(disp[1].getTipo()       == "Liquido");
+}
+
+TEST_CASE("Persistencia: despensa sobrevive a um round-trip salvar/carregar") {
+    Sistema original;
+    original.cadastrarUsuario("Murilo", "mur@email.com", "abc", nivelAcesso::Cozinheiro);
+    original.login("mur@email.com", "abc");
+    original.getUsuarioAtivo()->adicionarIngredienteDisponivel(
+        Ingrediente("Acucar", 200, "g", "Seco"));
+    original.salvar();
+
+    Sistema carregado;
+    carregado.carregar();
+
+    REQUIRE(carregado.getUsuarios().size() == 1);
+    const auto& disp = carregado.getUsuarios().front()->getIngredientesDisp();
+    REQUIRE(disp.size() == 1);
+    CHECK(disp[0].getNome()       == "Acucar");
+    CHECK(disp[0].getQuantidade() == doctest::Approx(200.0));
+}
+
+TEST_CASE("Persistencia: CSV antigo (4 campos, sem despensa) carrega sem quebrar") {
+    escreverCSV("data/usuarios.csv",
+                "Bernardo,ber@email.com,senha,Cozinheiro\n",
+                "data/receitas.csv", "");
+
+    Sistema s;
+    s.carregar();
+
+    REQUIRE(s.getUsuarios().size() == 1);
+    CHECK(s.getUsuarios().front()->getIngredientesDisp().empty());
+}
+
+TEST_CASE("Despensa: adicionarIngredienteDisponivel recusa nome duplicado") {
+    Sistema s;
+    s.cadastrarUsuario("Caetano", "cae@email.com", "123", nivelAcesso::Chef);
+    s.login("cae@email.com", "123");
+    Usuario* u = s.getUsuarioAtivo();
+
+    CHECK(u->adicionarIngredienteDisponivel(Ingrediente("Ovo", 3, "un", "Fresco")));
+    // mesmo nome -> recusado, retorna false e nao incha a despensa
+    CHECK_FALSE(u->adicionarIngredienteDisponivel(Ingrediente("Ovo", 6, "un", "Fresco")));
+    CHECK(u->getIngredientesDisp().size() == 1);
+}
+
+TEST_CASE("Despensa: deduplicacao e case-insensitive") {
+    Sistema s;
+    s.cadastrarUsuario("Murilo", "mur@email.com", "123", nivelAcesso::Cozinheiro);
+    s.login("mur@email.com", "123");
+    Usuario* u = s.getUsuarioAtivo();
+
+    CHECK(u->adicionarIngredienteDisponivel(Ingrediente("Leite", 1, "L", "Liquido")));
+    // "leite" deve colidir com "Leite" (mesma nocao usada por sugerirReceitas)
+    CHECK_FALSE(u->adicionarIngredienteDisponivel(Ingrediente("leite", 2, "L", "Liquido")));
+    CHECK_FALSE(u->adicionarIngredienteDisponivel(Ingrediente("LEITE", 3, "L", "Liquido")));
+    CHECK(u->getIngredientesDisp().size() == 1);
+}
+
+TEST_CASE("Despensa: ingredientes de nomes distintos sao todos aceitos") {
+    Sistema s;
+    s.cadastrarUsuario("Bernardo", "ber@email.com", "123", nivelAcesso::Chef);
+    s.login("ber@email.com", "123");
+    Usuario* u = s.getUsuarioAtivo();
+
+    CHECK(u->adicionarIngredienteDisponivel(Ingrediente("Farinha", 500, "g", "Seco")));
+    CHECK(u->adicionarIngredienteDisponivel(Ingrediente("Ovo", 3, "un", "Fresco")));
+    CHECK(u->adicionarIngredienteDisponivel(Ingrediente("Acucar", 200, "g", "Seco")));
+    CHECK(u->getIngredientesDisp().size() == 3);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Persistencia: favoritas e receitas proprias (vinculos Receita* por titulo)
+// Opcao 12 (favoritar) e cadastro de receita logado: sem persistir, o usuario
+// perde favoritas e a autoria das proprias receitas ao reabrir o programa.
+// ────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Persistencia: salvar serializa favoritas e proprias por titulo") {
+    Sistema s;
+    s.cadastrarUsuario("Caetano", "cae@email.com", "123", nivelAcesso::Chef);
+    s.login("cae@email.com", "123");
+    s.cadastrarReceita("Bolo", 40, Dificuldade::Facil, Categoria::Doce, 1); // vira propria
+    auto bolo = s.buscarPorTitulo("Bolo");
+    s.getUsuarioAtivo()->adicionarFavorita(bolo[0]);
+    s.salvar();
+
+    std::string conteudo = lerArquivo("data/usuarios.csv");
+    // o titulo "Bolo" deve aparecer no campo de favoritas e no de proprias
+    CHECK(conteudo.find("Bolo") != std::string::npos);
+}
+
+TEST_CASE("Persistencia: round-trip preserva favoritas apontando pro objeto real") {
+    {
+        Sistema s;
+        s.cadastrarUsuario("Murilo", "mur@email.com", "abc", nivelAcesso::Cozinheiro);
+        s.login("mur@email.com", "abc");
+        s.cadastrarReceita("Pizza", 30, Dificuldade::Medio, Categoria::Salgado, 1);
+        auto piz = s.buscarPorTitulo("Pizza");
+        s.getUsuarioAtivo()->adicionarFavorita(piz[0]);
+        s.salvar();
+    }
+
+    Sistema carregado;
+    carregado.carregar();
+
+    Usuario* u = nullptr;
+    for (auto& up : carregado.getUsuarios())
+        if (up->getEmail() == "mur@email.com") u = up.get();
+    REQUIRE(u != nullptr);
+
+    const auto& fav = u->getFavoritas();
+    REQUIRE(fav.size() == 1);
+    CHECK(fav[0]->getTitulo() == "Pizza");
+
+    // o ponteiro religado tem que ser O MESMO objeto vivo na lista _receitas,
+    // nao uma copia: ehFavorita() depende de igualdade de ponteiro.
+    Receita* pizzaNaLista = nullptr;
+    for (auto& r : carregado.getReceitas())
+        if (r.getTitulo() == "Pizza") pizzaNaLista = &r;
+    REQUIRE(pizzaNaLista != nullptr);
+    CHECK(fav[0] == pizzaNaLista);
+    CHECK(u->ehFavorita(pizzaNaLista));
+}
+
+TEST_CASE("Persistencia: religar usa titulo EXATO, nao substring") {
+    // "Bolo" nao pode religar para "Bolo de Cenoura"
+    escreverCSV("data/usuarios.csv",
+                "Ana,ana@email.com,1,Chef,,Bolo,\n",
+                "data/receitas.csv",
+                "Bolo de Cenoura,50,1,Medio,Doce,Misture,\n");
+
+    Sistema s;
+    s.carregar();
+
+    Usuario* u = s.getUsuarios().front().get();
+    // a favorita era "Bolo" exato; so existe "Bolo de Cenoura" -> nada religa
+    CHECK(u->getFavoritas().empty());
+}
+
+TEST_CASE("Persistencia: titulo de favorita inexistente e ignorado sem quebrar") {
+    escreverCSV("data/usuarios.csv",
+                "Bob,bob@email.com,1,Chef,,Receita Fantasma,\n",
+                "data/receitas.csv", "");
+
+    Sistema s;
+    s.carregar();   // nao deve lancar
+
+    REQUIRE(s.getUsuarios().size() == 1);
+    CHECK(s.getUsuarios().front()->getFavoritas().empty());
+}
+
+TEST_CASE("Persistencia: round-trip preserva receitas proprias") {
+    {
+        Sistema s;
+        s.cadastrarUsuario("Bernardo", "ber@email.com", "x", nivelAcesso::Chef);
+        s.login("ber@email.com", "x");
+        s.cadastrarReceita("Risoto",   45, Dificuldade::Dificil, Categoria::Salgado, 1);
+        s.cadastrarReceita("Brigadeiro", 20, Dificuldade::Facil, Categoria::Doce, 1);
+        s.salvar();
+    }
+
+    Sistema carregado;
+    carregado.carregar();
+
+    Usuario* u = nullptr;
+    for (auto& up : carregado.getUsuarios())
+        if (up->getEmail() == "ber@email.com") u = up.get();
+    REQUIRE(u != nullptr);
+    CHECK(u->getReceitasProprias().size() == 2);
+}

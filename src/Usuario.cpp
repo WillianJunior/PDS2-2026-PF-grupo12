@@ -1,6 +1,7 @@
 #include "Usuario.hpp"
 #include "Ingrediente.hpp"
 #include <algorithm>
+#include <cctype>
 #include <stdexcept>
 
 
@@ -45,8 +46,26 @@ void Usuario::removerReceitaPropria(Receita* r) {
         _receitasProprias.end());
 }
 
-void Usuario::adicionarIngredienteDisponivel(const Ingrediente& i){
+bool Usuario::adicionarIngredienteDisponivel(const Ingrediente& i){
+    
+    auto mesmoNome = [](const std::string& a, const std::string& b){
+        if (a.size() != b.size()) return false;
+        for (std::size_t k = 0; k < a.size(); ++k) {
+            if (std::tolower(static_cast<unsigned char>(a[k])) !=
+                std::tolower(static_cast<unsigned char>(b[k]))) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    bool jaExiste = std::any_of(
+        _IngredientesDisp.begin(), _IngredientesDisp.end(),
+        [&](const Ingrediente& disp){ return mesmoNome(disp.getNome(), i.getNome()); });
+
+    if (jaExiste) return false;   // nao duplica
     _IngredientesDisp.push_back(i);
+    return true;
 }
 
 const std::vector<Receita*>& Usuario::getReceitasProprias() const {

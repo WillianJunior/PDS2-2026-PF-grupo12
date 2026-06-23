@@ -49,7 +49,8 @@ public:
     void adicionarReceitaPropria(Receita* r);
     void removerReceitaPropria(Receita* r);
 
-    void adicionarIngredienteDisponivel(const Ingrediente& i);
+    
+    bool adicionarIngredienteDisponivel(const Ingrediente& i);
     
 
     void adicionarFavorita(Receita* r);

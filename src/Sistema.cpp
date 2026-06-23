@@ -262,10 +262,43 @@ void Sistema::salvar() {
         return;
     }
     for (const auto& u : _usuarios) {
-        fu << u->getNome() << "," << u->getEmail() << "," << u->getSenha() << "," << nAcessoParaStr(u->getAcesso()) << "\n"; //como temos override, getAcesso vem das filhas.
+        // serializa a despensa (ingredientes disponiveis) do usuario no MESMO
+        // sub-formato usado por receitas/templates: nome|qtd|unidade|tipo, com
+        // blocos separados por ';'. Vira o 5o campo do registro do usuario.
+        std::string despensa;
+        for (const auto& i : u->getIngredientesDisp()) {
+            if (!despensa.empty()) despensa += ";";
+            despensa += i.getNome() + "|"
+                      + formatarQuantidade(i.getQuantidade()) + "|"
+                      + i.getUnidade() + "|"
+                      + i.getTipo();
+        }
+
+        // favoritas e receitas proprias sao vetores de Receita* apontando para
+        // a lista _receitas. Nao da pra salvar ponteiros (endereco muda a cada
+        // execucao), entao salvamos o TITULO de cada receita como chave estavel.
+        // Blocos separados por ';'. No carregar() os ponteiros sao religados por
+        // titulo, DEPOIS que receitas e usuarios ja existem.
+        std::string favoritas;
+        for (const auto* r : u->getFavoritas()) {
+            if (!r) continue;
+            if (!favoritas.empty()) favoritas += ";";
+            favoritas += r->getTitulo();
+        }
+
+        std::string proprias;
+        for (const auto* r : u->getReceitasProprias()) {
+            if (!r) continue;
+            if (!proprias.empty()) proprias += ";";
+            proprias += r->getTitulo();
+        }
+
+        fu << u->getNome() << "," << u->getEmail() << "," << u->getSenha() << ","
+           << nAcessoParaStr(u->getAcesso()) << "," << despensa << ","
+           << favoritas << "," << proprias << "\n"; //como temos override, getAcesso vem das filhas.
         //atenção aqui! coloquei texto simples na senha, mas sugiro colocarmos  hash no futuro - Bernardo.
         //mas resolve problema de senha vazia passando no login que estava tendo. Olhar em carregar() tambem.
-        //coloquei nivel de acesso pra persistir.
+        //coloquei nivel de acesso pra persistir. Despensa=5o campo, favoritas=6o, proprias=7o.
     }
 
     // --- receitas ---
@@ -322,17 +355,41 @@ void Sistema::carregar() {
     _templates.clear();
     _usuarioAtivo = nullptr;
 
+    // Guarda temporariamente os titulos de favoritas/proprias lidos de cada
+    // usuario. Os ponteiros Receita* so podem ser religados DEPOIS que a lista
+    // _receitas estiver carregada (mais abaixo). Cada item: (usuario, titulos).
+    struct VinculoPendente {
+        Usuario* usuario;
+        std::vector<std::string> favoritas;
+        std::vector<std::string> proprias;
+    };
+    std::vector<VinculoPendente> pendentes;
+
+    // helper local: divide "a;b;c" no vetor {a,b,c}, ignorando blocos vazios.
+    auto split = [](const std::string& s){
+        std::vector<std::string> out;
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, ';')) {
+            if (!item.empty()) out.push_back(item);
+        }
+        return out;
+    };
+
     // --- usuarios ---
     std::ifstream fu("data/usuarios.csv");
     std::string linha;
     while (std::getline(fu, linha)) {
         std::stringstream ss(linha);
-        std::string nome, email, senha, sacesso;
+        std::string nome, email, senha, sacesso, despensa, sfav, sprop;
         std::getline(ss, nome,  ',');
         std::getline(ss, email, ',');
         std::getline(ss, senha, ',');
         //aqui coloquei pra carregar a senha, nao rolava no login pois nao salvava em nenhum lugar (precisa ser mais seguro na vida real)
         std::getline(ss, sacesso, ',');
+        std::getline(ss, despensa, ',');  // 5o campo: despensa serializada (pode faltar em CSVs antigos)
+        std::getline(ss, sfav,  ',');     // 6o campo: titulos das favoritas
+        std::getline(ss, sprop, ',');     // 7o campo: titulos das receitas proprias
         
         if (!nome.empty()) {
             nivelAcesso nAcesso = strParaNAcesso(sacesso);
@@ -343,6 +400,35 @@ void Sistema::carregar() {
             } else {
                 _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
             }
+
+            // reconstroi a despensa no usuario recem-criado, espelhando o salvar().
+            // Mesmo sub-formato dos ingredientes de receita: nome|qtd|unidade|tipo,
+            // blocos separados por ';'. CSV antigo (4 campos) deixa 'despensa' vazia,
+            // entao o laco simplesmente nao executa -> retrocompativel.
+            Usuario* u = _usuarios.back().get();
+            std::stringstream sd(despensa);
+            std::string bloco;
+            while (std::getline(sd, bloco, ';')) {
+                std::stringstream sb(bloco);
+                std::string inome, squant, unidade, tipo;
+                std::getline(sb, inome,   '|');
+                std::getline(sb, squant,  '|');
+                std::getline(sb, unidade, '|');
+                std::getline(sb, tipo,    '|');
+                if (!inome.empty()) {
+                    try {
+                        u->adicionarIngredienteDisponivel(
+                            Ingrediente(inome, std::stod(squant), unidade, tipo));
+                    } catch (const std::exception& e) {
+                        std::cerr << "Aviso: ingrediente de despensa ignorado ("
+                                  << e.what() << "): " << bloco << "\n";
+                    }
+                }
+            }
+
+            // guarda os titulos para religar os ponteiros depois das receitas.
+            // CSV antigo (sem esses campos) gera vetores vazios -> retrocompativel.
+            pendentes.push_back({u, split(sfav), split(sprop)});
         }
     }
 
@@ -421,6 +507,35 @@ void Sistema::carregar() {
         } catch (const std::exception& e) {
             std::cerr << "Aviso: linha de template ignorada (" << e.what() << "): "
                       << linha << "\n";
+        }
+    }
+
+    
+    // Agora que _receitas esta completa, traduzimos cada titulo guardado de
+    // Busca por titulo EXATO  
+    auto acharReceitaPorTitulo = [this](const std::string& titulo) -> Receita* {
+        for (auto& r : _receitas) {
+            if (r.getTitulo() == titulo) return &r;
+        }
+        return nullptr;
+    };
+
+    for (auto& p : pendentes) {
+        for (const auto& titulo : p.proprias) {
+            if (Receita* r = acharReceitaPorTitulo(titulo)) {
+                p.usuario->adicionarReceitaPropria(r);
+            } else {
+                std::cerr << "Aviso: receita propria nao encontrada ao religar: "
+                          << titulo << "\n";
+            }
+        }
+        for (const auto& titulo : p.favoritas) {
+            if (Receita* r = acharReceitaPorTitulo(titulo)) {
+                p.usuario->adicionarFavorita(r);  // ja evita duplicata internamente
+            } else {
+                std::cerr << "Aviso: receita favorita nao encontrada ao religar: "
+                          << titulo << "\n";
+            }
         }
     }
 }
