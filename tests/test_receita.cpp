@@ -91,6 +91,23 @@ TEST_CASE("Media de notas") {
     );
 }
 
+TEST_CASE("Apropriar rendimento"){
+
+    std::vector<Ingrediente> ingrs;
+    ingrs.push_back(Ingrediente("oregano", 50, "mg", "tempero"));
+    Receita r(
+        "Pizza",
+        40,
+        Dificuldade::Medio,
+        Categoria::Salgado, 1
+    );
+
+    int rR = 1;
+    int rT = 2;
+
+    CHECK(r.apropriarRendimento(ingrs, rR, rT)[0].getQuantidade() == 25);
+}
+
 //tests de excecao --------------
 
 TEST_CASE("Receita com titulo vazio lanca excecao") {
