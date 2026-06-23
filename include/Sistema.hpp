@@ -64,6 +64,7 @@ public:
     bool removerReceita(const std::string& titulo);
 
     std::vector<Receita*> buscarPorTitulo(const std::string& titulo);
+    std::vector<Receita*> sugerirReceitas();
     std::vector<Receita*> filtrarPorDificuldade(Dificuldade d);
     std::vector<Receita*> filtrarPorNotaMinima(double notaMinima);
 

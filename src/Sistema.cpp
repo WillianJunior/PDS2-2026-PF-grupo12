@@ -85,6 +85,8 @@ bool Sistema::cadastrarUsuario(const std::string& nome,
     }
     if (nAcesso == nivelAcesso::Chef) {
         _usuarios.push_back(std::make_unique<Chef>(nome, email, senha));
+    } else if (nAcesso == nivelAcesso::Admin) {
+        _usuarios.push_back(std::make_unique<Admin>(nome, email, senha));
     } else {
         _usuarios.push_back(std::make_unique<Cozinheiro>(nome, email, senha));
     }
@@ -155,6 +157,47 @@ std::vector<Receita*> Sistema::buscarPorTitulo(const std::string& titulo) {
         }
     }
     return resultado;
+}
+
+// Sugere receitas que o usuario ativo consegue fazer com os ingredientes que tem disponiveis.
+// Um ingrediente da receita e considerado "disponivel" se o usuario possui um ingrediente
+// de mesmo nome (comparacao por nome, ignorando quantidade/unidade) -- ver toLower para
+// tornar a comparacao insensivel a maiusculas/minusculas.
+std::vector<Receita*> Sistema::sugerirReceitas(){
+
+    std::vector<Receita*> SujestReceita;
+    const auto& disponiveis = getUsuarioAtivo()->getIngredientesDisp();
+    if(disponiveis.empty()){
+        throw std::invalid_argument("Nenhum ingrediente disponivel foi adicionado pelo usuário!");
+    }
+
+    for (auto& receita : this->_receitas) {
+
+        bool podeFazer = true;
+
+        for (const auto& ingrediente : receita.getIngredientes())
+        {
+            // o usuario tem um ingrediente com este nome?
+            bool tem = std::any_of(
+                disponiveis.begin(), disponiveis.end(),
+                [&](const Ingrediente& disp){
+                    return toLower(disp.getNome()) == toLower(ingrediente.getNome());
+                });
+
+            if (!tem)
+            {
+                podeFazer = false;
+                break;
+            }
+        }
+
+        if (podeFazer)
+        {
+            SujestReceita.push_back(&receita);
+        }
+    }
+
+    return SujestReceita;
 }
 
 std::vector<Receita*> Sistema::filtrarPorDificuldade(Dificuldade d) {

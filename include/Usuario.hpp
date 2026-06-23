@@ -2,6 +2,7 @@
 #define USUARIO_HPP
 #include <vector>
 #include <string>
+#include "Ingrediente.hpp"
 
 class Receita; 
 enum class nivelAcesso {Chef, Cozinheiro, Admin};
@@ -15,6 +16,7 @@ protected:
     std::string _nome;
     std::string _email;
     std::string _senha;
+    std::vector<Ingrediente> _IngredientesDisp;
     std::vector<Receita*> _receitasProprias;
     std::vector<Receita*> _favoritas;
     nivelAcesso _nivelAcesso;
@@ -36,6 +38,7 @@ public:
     const std::string& getSenha() const;
     const std::vector<Receita*>& getReceitasProprias() const;
     const std::vector<Receita*>& getFavoritas() const;
+    const std::vector<Ingrediente>& getIngredientesDisp() const;
     //colocando os getters junto
 
 
@@ -45,6 +48,8 @@ public:
 
     void adicionarReceitaPropria(Receita* r);
     void removerReceitaPropria(Receita* r);
+
+    void adicionarIngredienteDisponivel(const Ingrediente& i);
     
 
     void adicionarFavorita(Receita* r);
