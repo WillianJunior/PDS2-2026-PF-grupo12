@@ -8,7 +8,7 @@ class Menu{
 
 public:
     void exibirCabecalho() const;                              
-    void exibirOpcoes(bool logado, const std::string& nome) const;  
+    void exibirOpcoes(bool logado, const std::string& nome, bool admin = false) const;  
     int  lerOpcao() const;                                     
     void limparTela() const;                                   
     void telaCarregamento() const;    
@@ -39,6 +39,7 @@ public:
     void verReceitaCompletaUI(Sistema& s) const;
     void adicionarIngredientesUI(Sistema& s) const;
     void sugerirReceitasUI(Sistema& s) const;
+    void removerUsuarioUI(Sistema& s) const;   // exclusivo de Admin
     
 
 

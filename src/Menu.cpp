@@ -53,7 +53,7 @@ void Menu::pausar() const {
     std::getline(std::cin, descarta);  // espera o usuario apertar Enter
 }
 
-void Menu::exibirOpcoes(bool logado, const std::string& nome) const {
+void Menu::exibirOpcoes(bool logado, const std::string& nome, bool admin) const {
     
     std::cout << "██▄  ▄██ ██████ ███  ██ ██  ██\n";
     std::cout << "██ ▀▀ ██ ██▄▄   ██ ▀▄██ ██  ██\n";
@@ -77,6 +77,10 @@ void Menu::exibirOpcoes(bool logado, const std::string& nome) const {
     std::cout << "                     15. Ver receita completa\n";
     std::cout << "\n  INGREDIENTES\n";
     std::cout << "  16. Adicionar meus ingredientes   17. Sugerir receitas\n";
+    if (admin) {
+        std::cout << "\n  ADMIN\n";
+        std::cout << "  18. Remover usuario\n";
+    }
     std::cout << "\n  14. Salvar dados     0. Sair\n";
     std::cout << "\nOpcao: ";
 }
@@ -614,5 +618,29 @@ void Menu::verReceitaCompletaUI(Sistema& s) const {
             }
         }
         std::cout << "============================================\n";
+    }
+}
+// Opcao exclusiva de Admin: remove um usuario do sistema pelo email.
+// A checagem de privilegio acontece em duas camadas: aqui (feedback amigavel)
+// e dentro de Sistema::removerUsuario (regra de negocio que protege o dominio).
+void Menu::removerUsuarioUI(Sistema& s) const {
+    if (!exigirLogin(s)) return;
+
+    if (s.getAcessoUsuarioAtivo() != nivelAcesso::Admin) {
+        std::cout << "Apenas administradores podem remover usuarios.\n";
+        std::cout << "\a" << std::flush;
+        return;
+    }
+
+    std::cout << "Email do usuario a remover: ";
+    std::string email;
+    std::getline(std::cin, email);
+
+    if (s.removerUsuario(email)) {
+        std::cout << "Usuario removido. A alteracao sera gravada ao salvar.\n";
+    } else {
+        std::cout << "Nao foi possivel remover (email inexistente ou "
+                     "voce tentou remover a si mesmo).\n";
+        std::cout << "\a" << std::flush;
     }
 }
