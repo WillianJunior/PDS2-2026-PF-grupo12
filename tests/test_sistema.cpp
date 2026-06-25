@@ -497,3 +497,243 @@ TEST_CASE("Persistencia: round-trip preserva receitas proprias") {
     REQUIRE(u != nullptr);
     CHECK(u->getReceitasProprias().size() == 2);
 }
+
+// ---- Testes adicionais (PF): busca exata, delecao de usuario (Admin),
+//      filtros, avaliacao, sugestao e persistencia ----
+
+TEST_CASE("Busca: titulo exato tem prioridade sobre substring (bug Risoto)") {
+    Sistema s;
+    s.cadastrarReceita("Risoto de Cogumelos", 45, Dificuldade::Medio, Categoria::Vegetariano, 4);
+    s.cadastrarReceita("Risoto",               30, Dificuldade::Facil, Categoria::Salgado, 4);
+
+    // "Risoto" exato deve retornar SO a receita "Risoto"
+    auto exato = s.buscarPorTitulo("Risoto");
+    REQUIRE(exato.size() == 1);
+    CHECK(exato[0]->getTitulo() == "Risoto");
+
+    // o titulo completo da outra tambem resolve para ela so
+    auto outro = s.buscarPorTitulo("Risoto de Cogumelos");
+    REQUIRE(outro.size() == 1);
+    CHECK(outro[0]->getTitulo() == "Risoto de Cogumelos");
+}
+
+TEST_CASE("Busca: sem match exato, cai no fallback de substring") {
+    Sistema s;
+    s.cadastrarReceita("Risoto de Cogumelos", 45, Dificuldade::Medio, Categoria::Vegetariano, 4);
+    s.cadastrarReceita("Risoto",               30, Dificuldade::Facil, Categoria::Salgado, 4);
+
+    // "Riso" nao casa exato com nenhuma -> substring acha as duas
+    auto parcial = s.buscarPorTitulo("Riso");
+    CHECK(parcial.size() == 2);
+}
+
+TEST_CASE("Busca: exato e case-insensitive") {
+    Sistema s;
+    s.cadastrarReceita("Risoto", 30, Dificuldade::Facil, Categoria::Salgado, 4);
+    auto r = s.buscarPorTitulo("RISOTO");
+    REQUIRE(r.size() == 1);
+    CHECK(r[0]->getTitulo() == "Risoto");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Item 3: remocao de usuario por Admin
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Admin: remove outro usuario com sucesso") {
+    Sistema s;
+    s.cadastrarUsuario("Chefe", "admin@ex.com", "1", nivelAcesso::Admin);
+    s.cadastrarUsuario("Alvo",  "alvo@ex.com",  "2", nivelAcesso::Cozinheiro);
+    s.login("admin@ex.com", "1");
+
+    CHECK(s.getUsuarios().size() == 2);
+    CHECK(s.removerUsuario("alvo@ex.com") == true);
+    CHECK(s.getUsuarios().size() == 1);
+}
+
+TEST_CASE("Admin: nao pode remover a si mesmo") {
+    Sistema s;
+    s.cadastrarUsuario("Chefe", "admin@ex.com", "1", nivelAcesso::Admin);
+    s.login("admin@ex.com", "1");
+
+    CHECK(s.removerUsuario("admin@ex.com") == false);
+    CHECK(s.getUsuarios().size() == 1);   // continua la
+}
+
+TEST_CASE("Admin: remover email inexistente retorna false") {
+    Sistema s;
+    s.cadastrarUsuario("Chefe", "admin@ex.com", "1", nivelAcesso::Admin);
+    s.login("admin@ex.com", "1");
+
+    CHECK(s.removerUsuario("naoexiste@ex.com") == false);
+}
+
+TEST_CASE("Permissao: nao-Admin nao consegue remover usuario") {
+    Sistema s;
+    s.cadastrarUsuario("Comum", "comum@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.cadastrarUsuario("Outro", "outro@ex.com", "2", nivelAcesso::Cozinheiro);
+    s.login("comum@ex.com", "1");
+
+    // logado como Cozinheiro -> sem privilegio
+    CHECK(s.removerUsuario("outro@ex.com") == false);
+    CHECK(s.getUsuarios().size() == 2);
+}
+
+TEST_CASE("Permissao: sem ninguem logado, remover usuario falha") {
+    Sistema s;
+    s.cadastrarUsuario("Alguem", "a@ex.com", "1", nivelAcesso::Cozinheiro);
+    // sem login
+    CHECK(s.removerUsuario("a@ex.com") == false);
+}
+
+TEST_CASE("Chef logado nao tem privilegio de Admin para remover") {
+    Sistema s;
+    s.cadastrarUsuario("Cozinheiro Chefe", "chef@ex.com", "1", nivelAcesso::Chef);
+    s.cadastrarUsuario("Vitima",           "v@ex.com",    "2", nivelAcesso::Cozinheiro);
+    s.login("chef@ex.com", "1");
+    CHECK(s.removerUsuario("v@ex.com") == false);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura: filtros, avaliacao, remocao de receita
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Filtro: por dificuldade retorna so as que batem") {
+    Sistema s;
+    s.cadastrarReceita("A", 10, Dificuldade::Facil,   Categoria::Doce, 1);
+    s.cadastrarReceita("B", 20, Dificuldade::Dificil, Categoria::Salgado, 1);
+    s.cadastrarReceita("C", 30, Dificuldade::Facil,   Categoria::Vegano, 1);
+
+    CHECK(s.filtrarPorDificuldade(Dificuldade::Facil).size()   == 2);
+    CHECK(s.filtrarPorDificuldade(Dificuldade::Dificil).size() == 1);
+    CHECK(s.filtrarPorDificuldade(Dificuldade::Medio).size()   == 0);
+}
+
+TEST_CASE("Avaliacao: avaliar receita existente e refletir na nota") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+    s.cadastrarReceita("Torta", 40, Dificuldade::Medio, Categoria::Doce, 4);
+
+    CHECK(s.avaliar("Torta", 5, "Otima!") == true);
+    auto r = s.buscarPorTitulo("Torta");
+    REQUIRE(r.size() == 1);
+    CHECK(r[0]->calcularMediaNotas() == doctest::Approx(5.0));
+}
+
+TEST_CASE("Avaliacao: avaliar receita inexistente retorna false") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+    CHECK(s.avaliar("Fantasma", 5, "x") == false);
+}
+
+TEST_CASE("Filtro: por nota minima") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+    s.cadastrarReceita("Boa",  10, Dificuldade::Facil, Categoria::Doce, 1);
+    s.cadastrarReceita("Ruim", 10, Dificuldade::Facil, Categoria::Doce, 1);
+    s.avaliar("Boa", 5, "");
+    s.avaliar("Ruim", 2, "");
+
+    auto acima3 = s.filtrarPorNotaMinima(3.0);
+    REQUIRE(acima3.size() == 1);
+    CHECK(acima3[0]->getTitulo() == "Boa");
+}
+
+TEST_CASE("Remocao: remover receita existente e inexistente") {
+    Sistema s;
+    s.cadastrarReceita("Removivel", 10, Dificuldade::Facil, Categoria::Doce, 1);
+    CHECK(s.removerReceita("Removivel") == true);
+    CHECK(s.removerReceita("Removivel") == false); // ja foi
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura: construcao de Receita (validacoes que lancam)
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Template: cadastrar e recuperar rendimento e ingredientes") {
+    Sistema s;
+    s.cadastrarUsuario("Chef", "chef@ex.com", "1", nivelAcesso::Chef);
+    s.login("chef@ex.com", "1");
+    TemplateReceita* t = s.cadastrarTemplate("Base Bolo", "desc", 8);
+    REQUIRE(t != nullptr);
+    t->adicionarIngrediente(Ingrediente("Farinha", 500, "g", "Seco"));
+
+    CHECK(s.getRendimentoTemplate("Base Bolo") == 8);
+    CHECK(s.getIngredientesTemplate("Base Bolo").size() == 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura: sugerirReceitas (opcao 17) — caminho feliz e excecao
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Sugerir: retorna receita cujos ingredientes o usuario tem") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+
+    s.cadastrarReceita("Omelete", 10, Dificuldade::Facil, Categoria::Salgado, 1);
+    auto r = s.buscarPorTitulo("Omelete");
+    r[0]->adicionarIngrediente(Ingrediente("Ovo", 2, "un", "Fresco"));
+    r[0]->adicionarIngrediente(Ingrediente("Sal", 1, "tsp", "Seco"));
+
+    // usuario tem os dois ingredientes -> Omelete e sugerida
+    s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente("Ovo", 6, "un", "Fresco"));
+    s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente("Sal", 100, "g", "Seco"));
+
+    auto sugestoes = s.sugerirReceitas();
+    REQUIRE(sugestoes.size() == 1);
+    CHECK(sugestoes[0]->getTitulo() == "Omelete");
+}
+
+TEST_CASE("Sugerir: nao sugere receita faltando um ingrediente") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+
+    s.cadastrarReceita("Bolo", 40, Dificuldade::Facil, Categoria::Doce, 1);
+    auto r = s.buscarPorTitulo("Bolo");
+    r[0]->adicionarIngrediente(Ingrediente("Farinha", 2, "cup", "Seco"));
+    r[0]->adicionarIngrediente(Ingrediente("Ovo", 3, "un", "Fresco"));
+
+    // usuario so tem farinha -> Bolo NAO entra
+    s.getUsuarioAtivo()->adicionarIngredienteDisponivel(Ingrediente("Farinha", 1, "kg", "Seco"));
+
+    auto sugestoes = s.sugerirReceitas();
+    CHECK(sugestoes.empty());
+}
+
+TEST_CASE("Sugerir: despensa vazia lanca excecao") {
+    Sistema s;
+    s.cadastrarUsuario("U", "u@ex.com", "1", nivelAcesso::Cozinheiro);
+    s.login("u@ex.com", "1");
+    s.cadastrarReceita("Qualquer", 10, Dificuldade::Facil, Categoria::Doce, 1);
+
+    CHECK_THROWS_AS(s.sugerirReceitas(), std::invalid_argument);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura: persistencia da remocao de usuario (some do CSV ao salvar)
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEST_CASE("Persistencia: usuario removido pelo Admin nao volta apos salvar/carregar") {
+    {
+        Sistema s;
+        s.cadastrarUsuario("Chefe", "admin@ex.com", "1", nivelAcesso::Admin);
+        s.cadastrarUsuario("Alvo",  "alvo@ex.com",  "2", nivelAcesso::Cozinheiro);
+        s.login("admin@ex.com", "1");
+        REQUIRE(s.removerUsuario("alvo@ex.com") == true);
+        s.salvar();
+    }
+
+    Sistema carregado;
+    carregado.carregar();
+
+    // o Alvo nao deve reaparecer
+    bool achouAlvo = false;
+    for (auto& up : carregado.getUsuarios())
+        if (up->getEmail() == "alvo@ex.com") achouAlvo = true;
+    CHECK_FALSE(achouAlvo);
+    CHECK(carregado.getUsuarios().size() == 1);
+}
