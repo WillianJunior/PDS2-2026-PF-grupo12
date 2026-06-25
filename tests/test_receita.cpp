@@ -3,6 +3,7 @@
 #include "../include/Receita.hpp"
 #include "../include/Avaliacao.hpp"
 #include "../include/Usuario.hpp"
+#include "../include/Ingrediente.hpp"
 #include <stdexcept>
 #include "../include/Cozinheiro.hpp"
 
@@ -140,3 +141,43 @@ TEST_CASE("Adicionar ingrediente invalido lanca excecao") {
         std::invalid_argument
     );
 }
+
+// ---- Testes adicionais (PF): validacoes e utilitarios de Receita ----
+
+TEST_CASE("Receita: construtor rejeita tempo negativo") {
+    CHECK_THROWS_AS(Receita("X", -5, Dificuldade::Facil, Categoria::Doce, 1),
+                    std::invalid_argument);
+}
+
+TEST_CASE("Receita: construtor rejeita rendimento menor que 1") {
+    CHECK_THROWS_AS(Receita("X", 10, Dificuldade::Facil, Categoria::Doce, 0),
+                    std::invalid_argument);
+}
+
+TEST_CASE("Receita: adicionarIngrediente rejeita ingrediente invalido") {
+    Receita r("X", 10, Dificuldade::Facil, Categoria::Doce, 1);
+    // Ingrediente com quantidade <= 0 deve ser invalido
+    CHECK_THROWS_AS(r.adicionarIngrediente(Ingrediente("Sal", -1, "g", "Seco")),
+                    std::invalid_argument);
+}
+
+TEST_CASE("Receita: media de notas vazia e zero") {
+    Receita r("Nova", 10, Dificuldade::Facil, Categoria::Doce, 1);
+    CHECK(r.calcularMediaNotas() == doctest::Approx(0.0));
+}
+
+TEST_CASE("Receita: ordenarIngrediente coloca em ordem alfabetica") {
+    Receita r("X", 10, Dificuldade::Facil, Categoria::Doce, 1);
+    std::vector<Ingrediente> v {
+        Ingrediente("Zimbro", 1, "g", "Seco"),
+        Ingrediente("Acucar", 1, "g", "Seco"),
+        Ingrediente("Manjericao", 1, "g", "Fresco")
+    };
+    r.ordenarIngrediente(v);
+    CHECK(v.front().getNome() == "Acucar");
+    CHECK(v.back().getNome()  == "Zimbro");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cobertura: templates via Sistema
+// ─────────────────────────────────────────────────────────────────────────────
