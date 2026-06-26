@@ -3,7 +3,8 @@ build/
 *.o
 *.exe
 *.out
-data/*.csv
+# Os CSVs em data/ sao dados populados de exemplo e DEVEM ser versionados
+# (necessarios para a apresentacao). Por isso NAO ignoramos data/*.csv aqui.
 
 # Arquivos de Sistema/Linux
 .cache/
