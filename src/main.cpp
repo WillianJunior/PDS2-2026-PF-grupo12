@@ -27,7 +27,9 @@ int main() {
 
         bool logado = s.getUsuarioAtivo() != nullptr;
         std::string nomeUsuario = logado ? s.getUsuarioAtivo()->getNome() : "";
-        menu.exibirOpcoes(logado, nomeUsuario);
+        bool ehAdmin = logado &&
+                       s.getAcessoUsuarioAtivo() == nivelAcesso::Admin;
+        menu.exibirOpcoes(logado, nomeUsuario, ehAdmin);
 
         opcao = menu.lerOpcao();
         menu.limparTela();
@@ -50,6 +52,7 @@ int main() {
             case 15: menu.verReceitaCompletaUI(s);        break;
             case 16: menu.adicionarIngredientesUI(s);     break;
             case 17: menu.sugerirReceitasUI(s);           break;
+            case 18: menu.removerUsuarioUI(s);            break;
             case 0:
                 s.salvar();
                 std::cout << "Salvo. Ate logo!\n";
