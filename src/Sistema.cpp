@@ -148,15 +148,55 @@ bool Sistema::removerReceita(const std::string& titulo) {
     return false;
 }
 
-std::vector<Receita*> Sistema::buscarPorTitulo(const std::string& titulo) {
-    std::vector<Receita*> resultado;
-    std::string alvo = toLower(titulo);
-    for (auto& r : _receitas) {
-        if (toLower(r.getTitulo()).find(alvo) != std::string::npos) {
-            resultado.push_back(&r);
+// retorna true se ha um usuario logado E ele e Admin. Centraliza a checagem
+// de privilegio para nao espalhar comparacoes de nivel pelo codigo.
+bool Sistema::isAdmin() const {
+    return _usuarioAtivo != nullptr &&
+           _usuarioAtivo->getAcesso() == nivelAcesso::Admin;
+}
+
+// Remove um usuario pelo email. Funcionalidade exclusiva de Admin.
+// Regras: (1) so Admin pode chamar; (2) ninguem pode remover a si mesmo
+// (evitaria deixar _usuarioAtivo apontando para memoria liberada). Espelha
+// removerReceita: acha pelo identificador, apaga da lista, e como _usuarios
+// guarda unique_ptr, o proprio erase libera a memoria do usuario.
+bool Sistema::removerUsuario(const std::string& email) {
+    if (!isAdmin()) return false;                       // sem privilegio
+
+    for (auto it = _usuarios.begin(); it != _usuarios.end(); ++it) {
+        if ((*it)->getEmail() == email) {
+            if (it->get() == _usuarioAtivo) return false; // nao remove a si mesmo
+            _usuarios.erase(it);   // unique_ptr libera o Usuario automaticamente
+            return true;
         }
     }
-    return resultado;
+    return false;                                        // email nao encontrado
+}
+
+std::vector<Receita*> Sistema::buscarPorTitulo(const std::string& titulo) {
+    std::string alvo = toLower(titulo);
+
+    // 1a passada: procura correspondencia EXATA de titulo (ignorando caixa).
+    // Resolve o caso "Risoto" vs "Risoto de Cogumelos": digitar o titulo
+    // completo deve abrir exatamente aquela receita, e nao a primeira que
+    // contenha o texto como substring.
+    std::vector<Receita*> exatos;
+    for (auto& r : _receitas) {
+        if (toLower(r.getTitulo()) == alvo) {
+            exatos.push_back(&r);
+        }
+    }
+    if (!exatos.empty()) return exatos;
+
+    // 2a passada (fallback): se nao houve match exato, mantem a busca por
+    // substring para permitir pesquisa parcial (ex.: "Riso" acha "Risoto").
+    std::vector<Receita*> parciais;
+    for (auto& r : _receitas) {
+        if (toLower(r.getTitulo()).find(alvo) != std::string::npos) {
+            parciais.push_back(&r);
+        }
+    }
+    return parciais;
 }
 
 // Sugere receitas que o usuario ativo consegue fazer com os ingredientes que tem disponiveis.
