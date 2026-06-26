@@ -63,6 +63,9 @@ public:
 
     bool removerReceita(const std::string& titulo);
 
+    // Remove usuario por email (exclusivo de Admin). Ver regras em Sistema.cpp.
+    bool removerUsuario(const std::string& email);
+
     std::vector<Receita*> buscarPorTitulo(const std::string& titulo);
     std::vector<Receita*> sugerirReceitas();
     std::vector<Receita*> filtrarPorDificuldade(Dificuldade d);
